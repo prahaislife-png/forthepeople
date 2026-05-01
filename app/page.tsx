@@ -68,11 +68,14 @@ export default function Page() {
   const liveTenders = useLiveData<{ source: string; id?: string; title?: string; estimatedValue?: number; status?: string }[]>(`/api/data/tenders?district=${districtId}`);
   const liveEnergy = useLiveData<{ heatPriceGJ: number; electricityPriceKWh: number; gasPrice: number; renewableShare: number }>(`/api/data/energy?district=${districtId}`);
   const liveWater = useLiveData<{ hardness: string; ph: number; nitrates: number; chlorine: number; rating: string; lastTest: string }>(`/api/data/water?district=${districtId}`);
+  const liveNoise = useLiveData<{ dayAvgDb: number; nightAvgDb: number; mainSources: string[]; exceedancePercent: number }>(`/api/data/noise?district=${districtId}`);
+  const liveEUFunds = useLiveData<{ totalProjects: number; totalFunding: number; projects: { name: string; fund: string; amount: number; status: string }[] }>(`/api/data/eufunds?district=${districtId}`);
+  const livePermits = useLiveData<{ total2024: number; pending: number; approved: number; recent: { address: string; type: string; status: string; date: string }[] }>(`/api/data/permits?district=${districtId}`);
 
-  const allFetchedAts = [liveWeather, liveAir, liveTransit, liveContracts, liveHealth, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater]
+  const allFetchedAts = [liveWeather, liveAir, liveTransit, liveContracts, liveHealth, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits]
     .map((s) => s.fetchedAt).filter(Boolean) as string[];
   const latestUpdate = allFetchedAts.length > 0 ? allFetchedAts.sort().reverse()[0] : null;
-  const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater].filter(s => s.status === "live").length;
+  const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits].filter(s => s.status === "live").length;
 
   return (
     <div className="min-h-screen bg-[#fefcf9] flex">
@@ -82,7 +85,7 @@ export default function Page() {
           <div className="px-4 sm:px-5 h-11 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <a href="/" className="text-sm font-extrabold text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></a>
-              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 19 categories</span>
+              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 22 categories</span>
             </div>
             <div className="flex items-center gap-3 text-[10px]">
               {latestUpdate && (
@@ -397,11 +400,65 @@ export default function Page() {
               <Row left="Area" right={`${d.area} km²`} />
             </Tile>
 
+            <Tile title="Noise Pollution" source={liveNoise.source || "https://www.geoportalpraha.cz"}>
+              {liveNoise.data ? (
+                <>
+                  <Big>{liveNoise.data.dayAvgDb} dB</Big>
+                  <Sub>daytime average</Sub>
+                  <Row left="Night avg" right={`${liveNoise.data.nightAvgDb} dB`} />
+                  <Row left="Over limit" right={`${liveNoise.data.exceedancePercent}% area`} />
+                </>
+              ) : (
+                <>
+                  <Big>{d.noiseMaps.dayAvgDb} dB</Big>
+                  <Sub>daytime average</Sub>
+                  <Row left="Night avg" right={`${d.noiseMaps.nightAvgDb} dB`} />
+                  <Row left="Over limit" right={`${d.noiseMaps.exceedanceAreas}% area`} />
+                </>
+              )}
+            </Tile>
+
+            <Tile title="EU Funds" source={liveEUFunds.source || "https://dotaceeu.cz"}>
+              {liveEUFunds.data ? (
+                <>
+                  <Big>{liveEUFunds.data.totalProjects}</Big>
+                  <Sub>EU-funded projects</Sub>
+                  <Row left="Total funding" right={`${liveEUFunds.data.totalFunding.toLocaleString()} M CZK`} />
+                  {liveEUFunds.data.projects[0] && <Row left="Latest" right={liveEUFunds.data.projects[0].name} />}
+                </>
+              ) : (
+                <>
+                  <Big>{d.euFunds.length}</Big>
+                  <Sub>EU-funded projects</Sub>
+                  <Row left="Total funding" right={`${d.euFunds.reduce((s, p) => s + p.amount, 0).toFixed(1)} M CZK`} />
+                  {d.euFunds[0] && <Row left="Latest" right={d.euFunds[0].project} />}
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Building Permits" source={livePermits.source || "https://iprpraha.cz"}>
+              {livePermits.data ? (
+                <>
+                  <Big>{livePermits.data.total2024}</Big>
+                  <Sub>permits this year</Sub>
+                  <Row left="Pending" right={String(livePermits.data.pending)} />
+                  <Row left="Approved" right={String(livePermits.data.approved)} highlight />
+                </>
+              ) : (
+                <>
+                  <Big>{d.permits.length}</Big>
+                  <Sub>recent permits</Sub>
+                  <Row left="Pending" right={String(d.permits.filter(p => p.status === "pending").length)} />
+                  <Row left="Approved" right={String(d.permits.filter(p => p.status === "approved").length)} highlight />
+                </>
+              )}
+            </Tile>
+
           </div>
         </main>
 
         <footer className="border-t border-[#e8e4dc] px-4 sm:px-5 py-4 text-center text-[10px] text-[#8a7e6b]">
-          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 19 categories · 22 districts · Click card for source
+          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 22 categories · 22 districts · Click card for source
         </footer>
       </div>
 

@@ -1135,9 +1135,9 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              {liveAir.data.hourly.length > 0 && (
+              {liveAir.data.hourly?.length > 0 && (
                 <ResponsiveContainer width="100%" height={80}>
-                  <AreaChart data={liveAir.data.hourly.filter((_, i) => i % 3 === 0)}>
+                  <AreaChart data={(liveAir.data.hourly || []).filter((_, i) => i % 3 === 0)}>
                     <XAxis dataKey="hour" tick={{ fontSize: 9 }} />
                     <Area type="monotone" dataKey="pm25" stroke="#c41e3a" fill="#fee2e2" strokeWidth={1.5} />
                     <Tooltip contentStyle={{ fontSize: 10 }} />
@@ -1519,7 +1519,7 @@ export default function Home() {
                   <a href={`https://${liveCityHall.data.web}`} target="_blank" rel="noopener noreferrer" className="text-red-700 hover:underline font-medium">{liveCityHall.data.web}</a>
                 </div>
               )}
-              {liveCityHall.data.services.length > 0 && (
+              {liveCityHall.data.services?.length > 0 && (
                 <div className="mt-2 pt-2 border-t border-gray-100">
                   <div className="text-[10px] text-gray-500 mb-1">{lang === "en" ? "Services" : "Služby"}:</div>
                   <div className="space-y-0.5">

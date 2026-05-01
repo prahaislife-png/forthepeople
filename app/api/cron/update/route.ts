@@ -80,6 +80,98 @@ async function updateBusiness(districtId: number): Promise<UpdateResult> {
   }
 }
 
+async function updateOneDistrict(id: number): Promise<UpdateResult[]> {
+  const results: UpdateResult[] = [];
+
+  const golemioSections: Array<{
+    section: string;
+    endpoint: string;
+    transform: (data: GolemioFeatureCollection<Record<string, unknown>>) => unknown;
+  }> = [
+    {
+      section: "health",
+      endpoint: "/medicalinstitutions",
+      transform: (r) => {
+        const groups: Record<string, number> = {};
+        const facilities: Array<{ name: string; type: string; address: string }> = [];
+        for (const f of r.features) {
+          const g = (f.properties.type as { group?: string })?.group || "other";
+          groups[g] = (groups[g] || 0) + 1;
+          if (facilities.length < 5) facilities.push({ name: String(f.properties.name || ""), type: String((f.properties.type as { description?: string })?.description || ""), address: String((f.properties.address as { address_formatted?: string })?.address_formatted || "") });
+        }
+        return { pharmacies: groups["pharmacies"] || 0, gps: groups["general_practitioners"] || 0, specialists: groups["specialists"] || 0, hospitals: groups["hospitals"] || 0, total: r.features.length, facilities };
+      },
+    },
+    {
+      section: "parks",
+      endpoint: "/gardens",
+      transform: (r) => ({
+        total: r.features.length,
+        parks: r.features.map((f) => ({ name: String(f.properties.name || ""), description: String(f.properties.description || "").replace(/<[^>]+>/g, "").slice(0, 150) })),
+      }),
+    },
+    {
+      section: "sports",
+      endpoint: "/playgrounds",
+      transform: (r) => ({
+        playgrounds: r.features.length,
+        facilities: r.features.slice(0, 10).map((f) => ({ name: String(f.properties.name || ""), address: String((f.properties.address as { address_formatted?: string })?.address_formatted || "") })),
+      }),
+    },
+    {
+      section: "libraries",
+      endpoint: "/municipallibraries",
+      transform: (r) => ({
+        total: r.features.length,
+        libraries: r.features.map((f) => ({ name: String(f.properties.name || ""), address: String((f.properties.address as { address_formatted?: string })?.address_formatted || ""), web: String(f.properties.web || "") })),
+      }),
+    },
+    {
+      section: "waste",
+      endpoint: "/sortedwastestations",
+      transform: (r) => {
+        const types: Record<string, number> = {};
+        let containers = 0;
+        let monitored = 0;
+        for (const f of r.features) {
+          for (const c of (f.properties.containers as Array<{ trash_type?: { description: string }; last_measurement?: unknown }>) || []) {
+            containers++;
+            types[c.trash_type?.description || "?"] = (types[c.trash_type?.description || "?"] || 0) + 1;
+            if (c.last_measurement) monitored++;
+          }
+        }
+        return { stations: r.features.length, containers, types, monitoredContainers: monitored };
+      },
+    },
+    {
+      section: "cityhall",
+      endpoint: "/municipalauthorities",
+      transform: (r) => {
+        if (r.features.length === 0) return null;
+        const f = r.features[0];
+        return {
+          name: String(f.properties.name || ""),
+          address: String((f.properties.address as { address_formatted?: string })?.address_formatted || ""),
+          phone: String(f.properties.telephone || ""),
+          email: String(f.properties.email || ""),
+          web: String(f.properties.web || ""),
+        };
+      },
+    },
+  ];
+
+  // Sequential Golemio calls to avoid 429 rate limits
+  for (const { section, endpoint, transform } of golemioSections) {
+    results.push(await updateGolemioSection(id, section, endpoint, transform));
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  // ARES doesn't have rate limit issues
+  results.push(await updateBusiness(id));
+
+  return results;
+}
+
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
@@ -89,58 +181,13 @@ export async function GET(request: NextRequest) {
   const results: UpdateResult[] = [];
   const districtIds = Object.keys(DISTRICT_COORDS).map(Number);
 
-  // Process districts in batches of 4 to avoid rate limiting
-  for (let i = 0; i < districtIds.length; i += 4) {
-    const batch = districtIds.slice(i, i + 4);
+  // Process 1 district at a time, sequentially, to respect Golemio rate limits
+  for (const id of districtIds) {
+    const districtResults = await updateOneDistrict(id);
+    results.push(...districtResults);
 
-    const batchResults = await Promise.allSettled(
-      batch.flatMap((id) => [
-        updateGolemioSection(id, "health", "/medicalinstitutions", (r) => {
-          const groups: Record<string, number> = {};
-          const facilities: Array<{ name: string; type: string; address: string }> = [];
-          for (const f of r.features) {
-            const g = (f.properties.type as { group?: string })?.group || "other";
-            groups[g] = (groups[g] || 0) + 1;
-            if (facilities.length < 5) facilities.push({ name: String(f.properties.name || ""), type: String((f.properties.type as { description?: string })?.description || ""), address: String((f.properties.address as { address_formatted?: string })?.address_formatted || "") });
-          }
-          return { pharmacies: groups["pharmacies"] || 0, gps: groups["general_practitioners"] || 0, specialists: groups["specialists"] || 0, hospitals: groups["hospitals"] || 0, total: r.features.length, facilities };
-        }),
-        updateGolemioSection(id, "parks", "/gardens", (r) => ({
-          total: r.features.length,
-          parks: r.features.map((f) => ({ name: String(f.properties.name || ""), description: String(f.properties.description || "").replace(/<[^>]+>/g, "").slice(0, 150) })),
-        })),
-        updateGolemioSection(id, "sports", "/playgrounds", (r) => ({
-          playgrounds: r.features.length,
-          facilities: r.features.slice(0, 10).map((f) => ({ name: String(f.properties.name || ""), address: String((f.properties.address as { address_formatted?: string })?.address_formatted || "") })),
-        })),
-        updateGolemioSection(id, "libraries", "/municipallibraries", (r) => ({
-          total: r.features.length,
-          libraries: r.features.map((f) => ({ name: String(f.properties.name || ""), address: String((f.properties.address as { address_formatted?: string })?.address_formatted || ""), web: String(f.properties.web || "") })),
-        })),
-        updateGolemioSection(id, "waste", "/sortedwastestations", (r) => {
-          const types: Record<string, number> = {};
-          let containers = 0;
-          let monitored = 0;
-          for (const f of r.features) {
-            for (const c of (f.properties.containers as Array<{ trash_type?: { description: string }; last_measurement?: unknown }>) || []) {
-              containers++;
-              types[c.trash_type?.description || "?"] = (types[c.trash_type?.description || "?"] || 0) + 1;
-              if (c.last_measurement) monitored++;
-            }
-          }
-          return { stations: r.features.length, containers, types, monitoredContainers: monitored };
-        }),
-        updateBusiness(id),
-      ])
-    );
-
-    for (const r of batchResults) {
-      if (r.status === "fulfilled") results.push(r.value);
-      else results.push({ districtId: batch[0], section: "unknown", status: "error", error: String(r.reason) });
-    }
-
-    // Small delay between batches
-    if (i + 4 < districtIds.length) await new Promise((r) => setTimeout(r, 1000));
+    // 2s pause between districts
+    await new Promise((r) => setTimeout(r, 2000));
   }
 
   const ok = results.filter((r) => r.status === "ok").length;

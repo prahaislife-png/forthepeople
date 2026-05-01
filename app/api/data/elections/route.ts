@@ -2,10 +2,13 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, persistData, type LiveResponse } from "@/app/lib/cache";
 
 export interface ElectionsData {
-  lastElection: string;
-  turnout: number;
-  seats: number;
-  parties: Array<{ name: string; votes: number; seats: number; pct: number }>;
+  source: string;
+  lastElection?: string;
+  turnout?: number;
+  seats?: number;
+  parties?: Array<{ name: string; votes: number; seats: number; pct: number }>;
+  summary?: string;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://www.volby.cz/opendata/kv2022/xml/kv2022_Praha.xml";
@@ -29,7 +32,7 @@ function parseElectionsXml(xml: string, districtId: number): ElectionsData | nul
   if (parties.length === 0) return null;
   parties.sort((a, b) => b.votes - a.votes);
 
-  return { lastElection: "Komunální 2022", turnout, seats, parties: parties.slice(0, 8) };
+  return { source: SOURCE, lastElection: "Komunální 2022", turnout, seats, parties: parties.slice(0, 8) };
 }
 
 export async function GET(request: NextRequest) {

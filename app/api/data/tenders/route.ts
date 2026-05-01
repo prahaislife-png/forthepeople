@@ -2,12 +2,15 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, type LiveResponse } from "@/app/lib/cache";
 
 export interface TenderItem {
-  id: string;
-  title: string;
-  estimatedValue: number;
-  deadline: string;
-  status: string;
-  url: string;
+  source: string;
+  id?: string;
+  title?: string;
+  estimatedValue?: number;
+  deadline?: string;
+  status?: string;
+  url?: string;
+  summary?: string;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://www.vestnikverejnychzakazek.cz";

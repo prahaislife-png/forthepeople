@@ -2,11 +2,14 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, type LiveResponse } from "@/app/lib/cache";
 
 export interface SchoolsData {
-  primary: number;
-  secondary: number;
-  kindergarten: number;
-  universities: number;
-  total: number;
+  source: string;
+  primary?: number;
+  secondary?: number;
+  kindergarten?: number;
+  universities?: number;
+  total?: number;
+  summary?: string;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://rejstriky.msmt.cz";

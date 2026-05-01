@@ -2,10 +2,13 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, type LiveResponse } from "@/app/lib/cache";
 
 export interface CrimeData {
-  total: number;
-  change: number;
-  categories: Array<{ label: string; count: number }>;
-  year: number;
+  source: string;
+  summary?: string;
+  total?: number;
+  change?: number;
+  categories?: Array<{ label: string; count: number }>;
+  year?: number;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://mapakriminality.cz";

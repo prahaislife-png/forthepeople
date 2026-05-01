@@ -2,10 +2,13 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, type LiveResponse } from "@/app/lib/cache";
 
 export interface HousingData {
-  avgRentM2: number;
-  avgSaleM2: number;
-  municipalUnits: number;
-  vacancyRate: number;
+  source: string;
+  avgRentM2?: number;
+  avgSaleM2?: number;
+  municipalUnits?: number;
+  vacancyRate?: number;
+  summary?: string;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://www.sreality.cz";

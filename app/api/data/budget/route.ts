@@ -2,11 +2,14 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, type LiveResponse } from "@/app/lib/cache";
 
 export interface BudgetData {
-  year: number;
-  totalRevenue: number;
-  totalExpenditure: number;
-  surplus: number;
-  topCategories: Array<{ label: string; value: number }>;
+  source: string;
+  year?: number;
+  totalRevenue?: number;
+  totalExpenditure?: number;
+  surplus?: number;
+  topCategories?: Array<{ label: string; value: number }>;
+  summary?: string;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://monitor.statnipokladna.cz";

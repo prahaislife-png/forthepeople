@@ -2,10 +2,13 @@ import { NextRequest } from "next/server";
 import { getCached, setCache, getPersistedData, type LiveResponse } from "@/app/lib/cache";
 
 export interface EmploymentData {
-  unemploymentRate: number;
-  jobseekers: number;
-  avgSalary: number;
-  topEmployers: string[];
+  source: string;
+  unemploymentRate?: number;
+  jobseekers?: number;
+  avgSalary?: number;
+  topEmployers?: string[];
+  summary?: string;
+  lastScraped?: string;
 }
 
 const SOURCE = "https://www.uradprace.cz";

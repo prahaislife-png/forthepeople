@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DISTRICTS, getDistrict } from "./data/districts";
+import { Heart, Train, Wallet, Shield, Vote, Home, Briefcase, GraduationCap, FileText, Zap, Droplets, Users, Volume2, Landmark, Building2, Car, Bike, DollarSign, Globe, HandHeart, Baby, Palette, Map, Wifi, CalendarDays, FileSearch, Leaf, Recycle, BookOpen, type LucideIcon } from "lucide-react";
 
 interface LiveState<T> {
   status: "live" | "loading" | "error";
@@ -45,7 +46,6 @@ function fmtCZK(n: number) {
 
 export default function Page() {
   const [districtId, setDistrictId] = useState(7);
-  const [showPanel, setShowPanel] = useState(false);
   const d = getDistrict(districtId);
 
   const liveWeather = useLiveData<{ temperature: number; windspeed: number; description: string }>("/api/data/weather");
@@ -89,48 +89,91 @@ export default function Page() {
   const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism, liveCoworking, liveHolidays, liveInternet].filter(s => s.status === "live").length;
 
   return (
-    <div className="min-h-screen bg-[#fefcf9] flex">
-      <div className="flex-1 min-w-0">
-        {/* Top Bar */}
-        <header className="sticky top-0 z-50 bg-[#fefcf9]/95 backdrop-blur-sm border-b border-[#e8e4dc]">
-          <div className="px-4 sm:px-5 h-11 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <a href="/" className="text-sm font-extrabold text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></a>
-              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 33 categories</span>
-            </div>
-            <div className="flex items-center gap-3 text-[10px]">
-              {latestUpdate && (
-                <span className="hidden sm:inline text-[#8a7e6b]">
-                  <span className="inline-block w-1.5 h-1.5 bg-[#6b7f5a] rounded-full mr-1 animate-pulse" />
-                  {liveCount} live · {timeAgo(latestUpdate)}
-                </span>
-              )}
-              <a href="/sources" className="text-[#6b7f5a] hover:underline font-semibold">Sources</a>
-              <button onClick={() => setShowPanel(!showPanel)} className="lg:hidden font-bold text-white bg-[#6b7f5a] px-2 py-1 rounded text-[10px]">{d.name}</button>
-            </div>
+    <div className="min-h-screen bg-[#fefcf9]">
+      {/* Top Bar */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#e8e4dc] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <a href="/" className="text-base font-black text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></a>
+            <span className="text-xs text-[#8a7e6b] hidden sm:inline">Open civic data · Prague</span>
           </div>
-        </header>
-
-        {/* Hero */}
-        <div className="bg-[#3d4f3d] px-4 sm:px-5 py-5">
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">{d.name}</h1>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[#b8c9a8]">
-            <span><strong className="text-white text-sm">{new Intl.NumberFormat("en").format(d.population)}</strong> residents</span>
-            <span><strong className="text-white text-sm">{d.area}</strong> km²</span>
-            <span>Mayor: <strong className="text-white">{d.mayor}</strong></span>
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-[#93b37a]">
-            {liveWeather.data && <span><strong className="text-white">{liveWeather.data.temperature}°C</strong> {liveWeather.data.description}</span>}
-            {liveAir.data && <span>AQI <strong className="text-white">{liveAir.data.aqi}</strong> · PM2.5 <strong className="text-white">{liveAir.data.pm25}</strong></span>}
-            {liveTransit.data && <span><strong className="text-white">{liveTransit.data.length}</strong> transit alerts</span>}
+          <div className="flex items-center gap-4 text-xs">
+            {latestUpdate && (
+              <span className="text-[#8a7e6b] hidden sm:flex items-center gap-1.5">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                {liveCount} live · {timeAgo(latestUpdate)}
+              </span>
+            )}
+            <a href="/sources" className="text-[#6b7f5a] hover:underline font-semibold">Sources</a>
           </div>
         </div>
+      </header>
 
-        {/* Grid */}
-        <main className="px-3 sm:px-4 py-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+      {/* Hero — Centered, massive */}
+      <section className="hero-gradient py-10 sm:py-14 text-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+        <div className="relative max-w-4xl mx-auto px-4">
+          <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow-lg">{d.name}</h1>
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-10 mt-6">
+            <div className="text-center">
+              <div className="text-3xl sm:text-4xl font-black text-white">{new Intl.NumberFormat("en").format(d.population)}</div>
+              <div className="text-sm text-[#b8d4a0] mt-0.5">residents</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl sm:text-4xl font-black text-white">{d.area}</div>
+              <div className="text-sm text-[#b8d4a0] mt-0.5">km²</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl sm:text-4xl font-black text-white">{d.mayor.split(" ").pop()}</div>
+              <div className="text-sm text-[#b8d4a0] mt-0.5">mayor</div>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3 mt-5">
+            {liveWeather.data && (
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                {liveWeather.data.temperature}°C · {liveWeather.data.description}
+              </span>
+            )}
+            {liveAir.data && (
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                AQI {liveAir.data.aqi} · PM2.5 {liveAir.data.pm25}
+              </span>
+            )}
+            {liveTransit.data && (
+              <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                {liveTransit.data.length} transit alerts
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
 
-            <Tile title="Public Contracts" source={liveContracts.source}>
+      {/* District Selector — Horizontal scroll pills */}
+      <div className="bg-white border-b border-[#e8e4dc] sticky top-12 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-1.5 min-w-max">
+            {DISTRICTS.map((dist) => (
+              <button
+                key={dist.id}
+                onClick={() => setDistrictId(dist.id)}
+                className={`district-pill px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                  dist.id === districtId
+                    ? "bg-[#3d4f3d] text-white shadow-md"
+                    : "bg-[#f5f2ed] text-[#5a5040] hover:bg-[#e8f0e0]"
+                }`}
+              >
+                Praha {dist.id}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Data Grid */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+
+            <Tile title="Public Contracts" icon={FileSearch} source={liveContracts.source}>
               {liveContracts.data && liveContracts.data.length > 0 ? (
                 <>
                   <Big>{liveContracts.data.length}</Big>
@@ -147,7 +190,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Healthcare" source={liveHealth.source}>
+            <Tile title="Healthcare" icon={Heart} source={liveHealth.source}>
               {liveHealth.data ? (
                 <>
                   <Big>{liveHealth.data.total}</Big>
@@ -161,7 +204,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Transit" source={liveTransit.source}>
+            <Tile title="Transit" icon={Train} source={liveTransit.source}>
               {liveTransit.data && liveTransit.data.length > 0 ? (
                 <>
                   <Big>{liveTransit.data.length}</Big>
@@ -173,7 +216,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Waste & Recycling" source={liveWaste.source}>
+            <Tile title="Waste & Recycling" icon={Recycle} source={liveWaste.source}>
               {liveWaste.data ? (
                 <>
                   <div className="flex gap-4 items-end">
@@ -185,7 +228,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Parks" source={liveParks.source}>
+            <Tile title="Parks" icon={Leaf} source={liveParks.source}>
               {liveParks.data && liveParks.data.total > 0 ? (
                 <>
                   <Big>{liveParks.data.total}</Big>
@@ -210,7 +253,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Sports" source={liveSports.source}>
+            <Tile title="Sports" icon={Bike} source={liveSports.source}>
               {liveSports.data ? (
                 <>
                   <Big>{liveSports.data.playgrounds}</Big>
@@ -222,7 +265,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Libraries" source={liveLibraries.source}>
+            <Tile title="Libraries" icon={BookOpen} source={liveLibraries.source}>
               {liveLibraries.data ? (
                 <>
                   <Big>{liveLibraries.data.total}</Big>
@@ -234,7 +277,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Business Registry" source={liveBusiness.source}>
+            <Tile title="Business Registry" icon={Briefcase} source={liveBusiness.source}>
               {liveBusiness.data ? (
                 <>
                   <div className="text-xs font-bold text-[#3d4f3d]">{liveBusiness.data.name}</div>
@@ -244,7 +287,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="City Hall" source={liveCityHall.source}>
+            <Tile title="City Hall" icon={Landmark} source={liveCityHall.source}>
               {liveCityHall.data ? (
                 <div className="space-y-0.5 text-[10px] text-[#5a5040]">
                   {liveCityHall.data.address && <div>{liveCityHall.data.address}</div>}
@@ -256,7 +299,7 @@ export default function Page() {
             </Tile>
 
             {/* Budget - fallback to static data */}
-            <Tile title="Budget" source={liveBudget.source}>
+            <Tile title="Budget" icon={Wallet} source={liveBudget.source}>
               {(() => {
                 const rev = liveBudget.data?.totalRevenue || d.budget.totalRevenue;
                 const exp = liveBudget.data?.totalExpenditure || d.budget.totalExpenditure;
@@ -273,7 +316,7 @@ export default function Page() {
             </Tile>
 
             {/* Crime - fallback to static */}
-            <Tile title="Crime" source={liveCrime.source}>
+            <Tile title="Crime" icon={Shield} source={liveCrime.source}>
               {(() => {
                 const total = liveCrime.data?.total || d.crime.total2023;
                 const change = liveCrime.data?.change ?? d.crime.change;
@@ -290,7 +333,7 @@ export default function Page() {
             </Tile>
 
             {/* Elections - fallback to static */}
-            <Tile title="Elections" source={liveElections.source}>
+            <Tile title="Elections" icon={Vote} source={liveElections.source}>
               {(() => {
                 const turnout = liveElections.data?.turnout || d.elections.turnout;
                 const seats = liveElections.data?.seats || d.elections.seats;
@@ -310,7 +353,7 @@ export default function Page() {
             </Tile>
 
             {/* Housing - fallback to static */}
-            <Tile title="Housing" source={liveHousing.source}>
+            <Tile title="Housing" icon={Home} source={liveHousing.source}>
               {(() => {
                 const rent = liveHousing.data?.avgRentM2 || d.housing.avgRentM2;
                 const sale = liveHousing.data?.avgSaleM2 || d.housing.avgSaleM2;
@@ -327,7 +370,7 @@ export default function Page() {
             </Tile>
 
             {/* Employment - fallback to static */}
-            <Tile title="Employment" source={liveEmployment.source}>
+            <Tile title="Employment" icon={Briefcase} source={liveEmployment.source}>
               {(() => {
                 const rate = liveEmployment.data?.unemploymentRate ?? d.employment.unemploymentRate;
                 const salary = liveEmployment.data?.avgSalary || d.employment.avgSalaryCZK;
@@ -344,7 +387,7 @@ export default function Page() {
             </Tile>
 
             {/* Schools - fallback to static */}
-            <Tile title="Education" source={liveSchools.source}>
+            <Tile title="Education" icon={GraduationCap} source={liveSchools.source}>
               {(() => {
                 const kg = liveSchools.data?.kindergarten ?? d.schools.kindergarten;
                 const pr = liveSchools.data?.primary ?? d.schools.primary;
@@ -366,7 +409,7 @@ export default function Page() {
               })()}
             </Tile>
 
-            <Tile title="Tenders" source={liveTenders.source}>
+            <Tile title="Tenders" icon={FileText} source={liveTenders.source}>
               {liveTenders.data && Array.isArray(liveTenders.data) && liveTenders.data.length > 0 ? (
                 <>
                   <Big>{liveTenders.data.length}</Big>
@@ -391,7 +434,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Energy" source={liveEnergy.source}>
+            <Tile title="Energy" icon={Zap} source={liveEnergy.source}>
               {liveEnergy.data ? (
                 <>
                   <Big>{liveEnergy.data.heatPriceGJ}</Big>
@@ -409,7 +452,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Water Quality" source={liveWater.source}>
+            <Tile title="Water Quality" icon={Droplets} source={liveWater.source}>
               {liveWater.data ? (
                 <>
                   <Big className="capitalize">{liveWater.data.rating}</Big>
@@ -427,14 +470,14 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Demographics" source="https://www.czso.cz">
+            <Tile title="Demographics" icon={Users} source="https://www.czso.cz">
               <Big>{Math.round(d.population / d.area).toLocaleString()}</Big>
               <Sub>people per km²</Sub>
               <Row left="Population" right={d.population.toLocaleString()} />
               <Row left="Area" right={`${d.area} km²`} />
             </Tile>
 
-            <Tile title="Noise Pollution" source={liveNoise.source || "https://www.geoportalpraha.cz"}>
+            <Tile title="Noise Pollution" icon={Volume2} source={liveNoise.source || "https://www.geoportalpraha.cz"}>
               {liveNoise.data ? (
                 <>
                   <Big>{liveNoise.data.dayAvgDb} dB</Big>
@@ -452,7 +495,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="EU Funds" source={liveEUFunds.source || "https://dotaceeu.cz"}>
+            <Tile title="EU Funds" icon={Globe} source={liveEUFunds.source || "https://dotaceeu.cz"}>
               {liveEUFunds.data && liveEUFunds.data.totalProjects > 0 ? (
                 <>
                   <Big>{liveEUFunds.data.totalProjects}</Big>
@@ -475,7 +518,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Building Permits" source={livePermits.source || "https://iprpraha.cz"}>
+            <Tile title="Building Permits" icon={Building2} source={livePermits.source || "https://iprpraha.cz"}>
               {livePermits.data && livePermits.data.total2024 > 0 ? (
                 <>
                   <Big>{livePermits.data.total2024}</Big>
@@ -498,7 +541,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Parking" source={liveParking.source || "https://api.golemio.cz/v2/parkings"}>
+            <Tile title="Parking" icon={Car} source={liveParking.source || "https://api.golemio.cz/v2/parkings"}>
               {liveParking.data && liveParking.data.total > 0 ? (
                 <>
                   <Big>{liveParking.data.freeSpaces}</Big>
@@ -517,7 +560,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Cycling" source={liveCycling.source || "https://api.golemio.cz/v2/bicyclecounters"}>
+            <Tile title="Cycling" icon={Bike} source={liveCycling.source || "https://api.golemio.cz/v2/bicyclecounters"}>
               {liveCycling.data && liveCycling.data.counters > 0 ? (
                 <>
                   <Big>{liveCycling.data.counters}</Big>
@@ -535,7 +578,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Exchange Rates" source="https://www.cnb.cz">
+            <Tile title="Exchange Rates" icon={DollarSign} source="https://www.cnb.cz">
               {liveExchange.data ? (
                 <>
                   <Big>{liveExchange.data.eur.toFixed(2)}</Big>
@@ -554,7 +597,7 @@ export default function Page() {
               )}
             </Tile>
 
-            <Tile title="Foreigners" source="https://www.czso.cz">
+            <Tile title="Foreigners" icon={Globe} source="https://www.czso.cz">
               {liveForeigners.data ? (
                 <>
                   <Big>{liveForeigners.data.total.toLocaleString()}</Big>
@@ -568,7 +611,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Social Services" source="https://iregistr.mpsv.cz">
+            <Tile title="Social Services" icon={HandHeart} source="https://iregistr.mpsv.cz">
               {liveSocial.data ? (
                 <>
                   <Big>{liveSocial.data.totalProviders}</Big>
@@ -580,7 +623,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Childcare" source="https://rejstriky.msmt.cz">
+            <Tile title="Childcare" icon={Baby} source="https://rejstriky.msmt.cz">
               {liveChildcare.data ? (
                 <>
                   <Big>{liveChildcare.data.kindergartens}</Big>
@@ -592,7 +635,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Culture & Arts" source="https://www.prague.eu">
+            <Tile title="Culture & Arts" icon={Palette} source="https://www.prague.eu">
               {liveCulture.data ? (
                 <>
                   <Big>{liveCulture.data.theaters + liveCulture.data.galleries + liveCulture.data.cinemas + liveCulture.data.culturalCenters}</Big>
@@ -605,7 +648,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Tourism" source="https://www.czso.cz">
+            <Tile title="Tourism" icon={Map} source="https://www.czso.cz">
               {liveTourism.data ? (
                 <>
                   <Big>{(liveTourism.data.annualVisitors / 1_000_000).toFixed(1)}M</Big>
@@ -617,7 +660,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Coworking" source="https://www.coworker.com">
+            <Tile title="Coworking" icon={Wifi} source="https://www.coworker.com">
               {liveCoworking.data ? (
                 <>
                   <Big>{liveCoworking.data.total}</Big>
@@ -629,7 +672,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Public Holidays" source="https://www.mpsv.cz">
+            <Tile title="Public Holidays" icon={CalendarDays} source="https://www.mpsv.cz">
               {liveHolidays.data ? (
                 <>
                   <Big>{liveHolidays.data.nextHoliday.daysUntil === 0 ? "Today!" : `${liveHolidays.data.nextHoliday.daysUntil}d`}</Big>
@@ -641,7 +684,7 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Internet & ISP" source="https://www.ctu.cz">
+            <Tile title="Internet & ISP" icon={Wifi} source="https://www.ctu.cz">
               {liveInternet.data ? (
                 <>
                   <Big>{liveInternet.data.avgDownload} Mbps</Big>
@@ -656,68 +699,25 @@ export default function Page() {
           </div>
         </main>
 
-        <footer className="border-t border-[#e8e4dc] px-4 sm:px-5 py-4 text-center text-[10px] text-[#8a7e6b]">
-          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 33 categories · 22 districts · Click card for source
+        <footer className="max-w-7xl mx-auto border-t border-[#e8e4dc] px-4 sm:px-6 py-6 text-center text-xs text-[#8a7e6b]">
+          <strong className="text-[#3d4f3d] text-sm">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong>
+          <p className="mt-1">33 data categories · 22 Prague districts · Click any card for data source</p>
         </footer>
-      </div>
-
-      {/* Right Panel */}
-      <aside className="hidden lg:flex flex-col w-40 border-l border-[#e8e4dc] bg-[#faf8f4] sticky top-0 h-screen overflow-y-auto">
-        <div className="px-3 py-2 border-b border-[#e8e4dc]">
-          <div className="text-[9px] font-bold text-[#8a7e6b] uppercase tracking-wider">District</div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {DISTRICTS.map((dist) => (
-            <button
-              key={dist.id}
-              onClick={() => setDistrictId(dist.id)}
-              className={`w-full text-left px-3 py-1.5 text-[11px] transition-colors ${
-                dist.id === districtId
-                  ? "bg-[#3d4f3d] text-white font-bold"
-                  : "text-[#5a5040] hover:bg-[#f0ebe3]"
-              }`}
-            >
-              Praha {dist.id}
-            </button>
-          ))}
-        </div>
-      </aside>
-
-      {/* Mobile Panel */}
-      {showPanel && (
-        <div className="fixed inset-0 z-[60] lg:hidden" onClick={() => setShowPanel(false)}>
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute right-0 top-0 bottom-0 w-48 bg-[#faf8f4] shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="px-3 py-2 border-b border-[#e8e4dc] flex items-center justify-between">
-              <span className="text-[9px] font-bold text-[#8a7e6b] uppercase">District</span>
-              <button onClick={() => setShowPanel(false)} className="text-[#8a7e6b]">×</button>
-            </div>
-            {DISTRICTS.map((dist) => (
-              <button
-                key={dist.id}
-                onClick={() => { setDistrictId(dist.id); setShowPanel(false); }}
-                className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${
-                  dist.id === districtId ? "bg-[#3d4f3d] text-white font-bold" : "text-[#5a5040] hover:bg-[#f0ebe3]"
-                }`}
-              >
-                Praha {dist.id}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-function Tile({ title, source, children }: { title: string; source?: string | null; children: React.ReactNode }) {
+function Tile({ title, icon: Icon, source, children }: { title: string; icon?: LucideIcon; source?: string | null; children: React.ReactNode }) {
   const [showSrc, setShowSrc] = useState(false);
   return (
-    <div className="bg-white rounded border border-[#e8e4dc] p-2.5 hover:border-[#6b7f5a]/50 transition-colors cursor-pointer" onClick={() => source && setShowSrc(!showSrc)}>
-      <div className="text-[10px] font-bold text-[#6b7f5a] uppercase tracking-wide mb-1">{title}</div>
+    <div className="card-hover bg-white rounded-xl border-l-4 border-l-[#6b7f5a] shadow-sm p-4 cursor-pointer" onClick={() => source && setShowSrc(!showSrc)}>
+      <div className="flex items-center gap-2 mb-2">
+        {Icon && <Icon size={16} className="text-[#6b7f5a]" />}
+        <h3 className="text-sm font-bold text-[#3d4f3d]">{title}</h3>
+      </div>
       {children}
       {showSrc && source && (
-        <div className="mt-1 text-[8px] text-[#6b7f5a] font-mono bg-[#f0ebe3] px-1 py-0.5 rounded inline-block">
+        <div className="mt-2 text-[9px] text-[#6b7f5a] font-mono bg-[#f5f2ed] px-2 py-1 rounded-md inline-block">
           {source.replace("https://", "").replace("http://", "").split("/")[0]}
         </div>
       )}
@@ -726,16 +726,16 @@ function Tile({ title, source, children }: { title: string; source?: string | nu
 }
 
 function Big({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`text-2xl font-black text-[#3d4f3d] leading-tight ${className || ""}`}>{children}</div>;
+  return <div className={`text-3xl font-black text-[#3d4f3d] leading-tight tracking-tight ${className || ""}`}>{children}</div>;
 }
 
 function Sub({ children }: { children: React.ReactNode }) {
-  return <div className="text-[9px] text-[#8a7e6b] mb-1.5">{children}</div>;
+  return <div className="text-xs text-[#8a7e6b] mb-2">{children}</div>;
 }
 
 function Row({ left, right, highlight }: { left: string; right: string; highlight?: boolean }) {
   return (
-    <div className="flex justify-between text-[10px] py-px gap-2">
+    <div className="flex justify-between text-xs py-0.5 gap-2">
       <span className="text-[#8a7e6b] truncate">{left}</span>
       <strong className={`shrink-0 ${highlight ? "text-[#6b7f5a]" : "text-[#3d4f3d]"}`}>{right}</strong>
     </div>
@@ -744,9 +744,10 @@ function Row({ left, right, highlight }: { left: string; right: string; highligh
 
 function Skeleton() {
   return (
-    <div className="animate-pulse space-y-1.5">
-      <div className="h-6 bg-[#f0ebe3] rounded w-1/4" />
-      <div className="h-2 bg-[#f0ebe3] rounded w-2/3" />
+    <div className="animate-pulse space-y-2">
+      <div className="h-8 bg-[#f0ebe3] rounded-lg w-1/3" />
+      <div className="h-3 bg-[#f0ebe3] rounded w-2/3" />
+      <div className="h-3 bg-[#f0ebe3] rounded w-1/2" />
     </div>
   );
 }

@@ -36,23 +36,62 @@ async function updateGolemioSection(
   }
 }
 
-async function updateContracts(districtId: number): Promise<UpdateResult> {
-  const ico = DISTRICT_ICOS[districtId];
-  if (!ico) return { districtId, section: "contracts", status: "error", error: "No ICO" };
-
+async function updateContractsAll(): Promise<UpdateResult[]> {
+  const results: UpdateResult[] = [];
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "http://localhost:3001"}/api/data/contracts?district=${districtId}`, {
-      signal: AbortSignal.timeout(60000),
-    });
-    const json = await res.json();
-    if (json.status === "live" && json.data) {
-      await persistData(districtId, "contracts", json.data, "https://data.smlouvy.gov.cz");
-      return { districtId, section: "contracts", status: "ok" };
+    const now = new Date();
+    const dumpUrl = `https://data.smlouvy.gov.cz/dump_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, "0")}_${String(now.getDate()).padStart(2, "0")}.xml`;
+    const fallbackUrl = (() => { const d = new Date(Date.now() - 86400000); return `https://data.smlouvy.gov.cz/dump_${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, "0")}_${String(d.getDate()).padStart(2, "0")}.xml`; })();
+
+    let res = await fetch(dumpUrl, { signal: AbortSignal.timeout(90000) });
+    if (!res.ok) res = await fetch(fallbackUrl, { signal: AbortSignal.timeout(90000) });
+    if (!res.ok) throw new Error(`Dump unavailable (${res.status})`);
+
+    const xml = await res.text();
+
+    // Parse contracts for all district ICOs in one pass
+    const icoToDistrict: Record<string, number> = {};
+    for (const [distId, ico] of Object.entries(DISTRICT_ICOS)) {
+      icoToDistrict[ico] = Number(distId);
     }
-    return { districtId, section: "contracts", status: "error", error: json.error || "No data" };
+
+    const contractsByDistrict: Record<number, Array<{ id: string; supplier: string; subject: string; value: number; date: string }>> = {};
+
+    const recordRegex = /<zaznam>([\s\S]*?)<\/zaznam>/g;
+    let match;
+    while ((match = recordRegex.exec(xml)) !== null) {
+      const record = match[1];
+      for (const [ico, distId] of Object.entries(icoToDistrict)) {
+        if (!record.includes(`<ico>${ico}</ico>`)) continue;
+        const id = record.match(/<idSmlouvy>(\d+)<\/idSmlouvy>/)?.[1] ?? "";
+        const subject = record.match(/<predmet>([\s\S]*?)<\/predmet>/)?.[1]?.trim() ?? "";
+        const valueStr = record.match(/<hodnotaBezDph>([\d.]+)<\/hodnotaBezDph>/)?.[1];
+        const date = record.match(/<datumUzavreni>([\d-]+)<\/datumUzavreni>/)?.[1] ?? "";
+        const supplier = record.match(/<smluvniStrana>[\s\S]*?<nazev>([\s\S]*?)<\/nazev>/)?.[1]?.trim() ?? "";
+        if (subject && valueStr) {
+          if (!contractsByDistrict[distId]) contractsByDistrict[distId] = [];
+          contractsByDistrict[distId].push({ id: `RS-${id}`, supplier: supplier || "N/A", subject, value: Math.round(parseFloat(valueStr)), date });
+        }
+      }
+    }
+
+    for (const [distId, contracts] of Object.entries(contractsByDistrict)) {
+      const sorted = contracts.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15);
+      await persistData(Number(distId), "contracts", sorted, "https://data.smlouvy.gov.cz");
+      results.push({ districtId: Number(distId), section: "contracts", status: "ok" });
+    }
+
+    // Mark districts with no contracts found
+    for (const distId of Object.keys(DISTRICT_COORDS).map(Number)) {
+      if (!contractsByDistrict[distId]) {
+        await persistData(distId, "contracts", [], "https://data.smlouvy.gov.cz");
+        results.push({ districtId: distId, section: "contracts", status: "ok" });
+      }
+    }
   } catch (e) {
-    return { districtId, section: "contracts", status: "error", error: e instanceof Error ? e.message : "Unknown" };
+    results.push({ districtId: 0, section: "contracts", status: "error", error: e instanceof Error ? e.message : "Unknown" });
   }
+  return results;
 }
 
 async function updateBusiness(districtId: number): Promise<UpdateResult> {
@@ -331,6 +370,10 @@ export async function GET(request: NextRequest) {
   // Run Apify scrapers if ?apify=1 is passed (or on a schedule — triggered separately)
   const runApify = request.nextUrl.searchParams.get("apify") === "1";
   if (runApify) {
+    // Contracts: download once, parse for all districts
+    const contractResults = await updateContractsAll();
+    results.push(...contractResults);
+
     const apifyResults = await updateApifySections();
     results.push(...apifyResults);
   }

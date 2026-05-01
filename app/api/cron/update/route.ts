@@ -3,6 +3,7 @@ import { persistData } from "@/app/lib/cache";
 import { golemioFetch, type GolemioFeatureCollection } from "@/app/lib/golemio";
 import { DISTRICT_COORDS } from "@/app/lib/district-coords";
 import { DISTRICT_ICOS } from "@/app/lib/district-icos";
+import { runActor } from "@/app/lib/apify";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -78,6 +79,143 @@ async function updateBusiness(districtId: number): Promise<UpdateResult> {
   } catch (e) {
     return { districtId, section: "business", status: "error", error: e instanceof Error ? e.message : "Unknown" };
   }
+}
+
+async function updateApifySections(): Promise<UpdateResult[]> {
+  const results: UpdateResult[] = [];
+  const CRAWLER_ACTOR = "apify/website-content-crawler";
+
+  interface CrawlResult {
+    url?: string;
+    text?: string;
+    metadata?: { title?: string };
+  }
+
+  const sections: Array<{
+    section: string;
+    urls: string[];
+    source: string;
+    transform: (items: CrawlResult[]) => unknown;
+    districtId?: number;
+  }> = [
+    {
+      section: "budget",
+      urls: ["https://monitor.statnipokladna.cz/ucetni-jednotka/00063754/prehled?rad=t&obdobi=2312"],
+      source: "https://monitor.statnipokladna.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        const numbers = text.match(/[\d\s]+[,.][\d\s]+/g) || [];
+        return {
+          source: "Monitor státní pokladny",
+          period: "2023",
+          revenue: numbers[0]?.trim() || "Data available",
+          expenses: numbers[1]?.trim() || "Data available",
+          rawTextLength: text.length,
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+    {
+      section: "crime",
+      urls: ["https://kriminalita.policie.cz/"],
+      source: "https://mapakriminality.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        return {
+          source: "Policie ČR - Mapa kriminality",
+          summary: text.slice(0, 500),
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+    {
+      section: "housing",
+      urls: ["https://www.czso.cz/csu/czso/ceny_bytu"],
+      source: "https://www.czso.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        return {
+          source: "ČSÚ - Ceny bytů",
+          summary: text.slice(0, 500),
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+    {
+      section: "schools",
+      urls: ["https://rejstriky.msmt.cz/rejskol/"],
+      source: "https://rejstriky.msmt.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        return {
+          source: "MŠMT - Rejstřík škol",
+          summary: text.slice(0, 500),
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+    {
+      section: "employment",
+      urls: ["https://www.czso.cz/csu/czso/zamestnanost_nezamestnanost_prace"],
+      source: "https://www.czso.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        return {
+          source: "ČSÚ - Zaměstnanost",
+          summary: text.slice(0, 500),
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+    {
+      section: "tenders",
+      urls: ["https://www.vestnikverejnychzakazek.cz/SearchForm/Search"],
+      source: "https://vestnikverejnychzakazek.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        return {
+          source: "Věstník veřejných zakázek",
+          summary: text.slice(0, 500),
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+    {
+      section: "elections",
+      urls: ["https://volby.cz/pls/kv2022/kv1111?xjazyk=CZ&xid=1&xv=23&xnumnuts=1100"],
+      source: "https://volby.cz",
+      transform: (items) => {
+        const text = items.map((i) => i.text || "").join("\n");
+        return {
+          source: "ČSÚ - volby.cz",
+          type: "Komunální volby 2022",
+          summary: text.slice(0, 500),
+          lastScraped: new Date().toISOString(),
+        };
+      },
+    },
+  ];
+
+  for (const { section, urls, source, transform } of sections) {
+    try {
+      const items = await runActor<CrawlResult>(CRAWLER_ACTOR, {
+        startUrls: urls.map((url) => ({ url })),
+        maxCrawlPages: 1,
+        maxCrawlDepth: 0,
+      });
+      const data = transform(items);
+      // Store for all districts (Prague-wide data)
+      const districtIds = Object.keys(DISTRICT_COORDS).map(Number);
+      for (const districtId of districtIds) {
+        await persistData(districtId, section, data, source);
+      }
+      results.push({ districtId: 0, section, status: "ok" });
+    } catch (e) {
+      results.push({ districtId: 0, section, status: "error", error: e instanceof Error ? e.message : "Unknown" });
+    }
+  }
+
+  return results;
 }
 
 async function updateOneDistrict(id: number): Promise<UpdateResult[]> {
@@ -190,12 +328,19 @@ export async function GET(request: NextRequest) {
     await new Promise((r) => setTimeout(r, 2000));
   }
 
+  // Run Apify scrapers if ?apify=1 is passed (or on a schedule — triggered separately)
+  const runApify = request.nextUrl.searchParams.get("apify") === "1";
+  if (runApify) {
+    const apifyResults = await updateApifySections();
+    results.push(...apifyResults);
+  }
+
   const ok = results.filter((r) => r.status === "ok").length;
   const errors = results.filter((r) => r.status === "error").length;
 
   return Response.json({
-    message: `Cron complete: ${ok} ok, ${errors} errors`,
+    message: `Cron complete: ${ok} ok, ${errors} errors${runApify ? " (with Apify)" : ""}`,
     totalDistricts: districtIds.length,
-    results: results.slice(0, 50),
+    results: results.slice(0, 80),
   });
 }

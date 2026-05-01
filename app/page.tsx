@@ -76,60 +76,51 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-[#fefcf9] flex">
-      {/* Main Content */}
       <div className="flex-1 min-w-0">
         {/* Top Bar */}
         <header className="sticky top-0 z-50 bg-[#fefcf9]/95 backdrop-blur-sm border-b border-[#e8e4dc]">
-          <div className="px-4 sm:px-5 h-12 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <a href="/" className="text-sm font-bold text-[#3d4f3d]">
-                ForThePeople<span className="text-[#6b7f5a]">.cz</span>
-              </a>
-              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Real-time open data for Prague</span>
+          <div className="px-4 sm:px-5 h-11 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <a href="/" className="text-sm font-extrabold text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></a>
+              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 19 categories</span>
             </div>
             <div className="flex items-center gap-3 text-[10px]">
               {latestUpdate && (
                 <span className="hidden sm:inline text-[#8a7e6b]">
-                  <span className="inline-block w-1.5 h-1.5 bg-[#6b7f5a] rounded-full mr-1" />
-                  {liveCount} live sections · updated {timeAgo(latestUpdate)}
+                  <span className="inline-block w-1.5 h-1.5 bg-[#6b7f5a] rounded-full mr-1 animate-pulse" />
+                  {liveCount} live · {timeAgo(latestUpdate)}
                 </span>
               )}
-              <a href="/sources" className="text-[#6b7f5a] hover:underline font-medium">Data Sources</a>
-              <button
-                onClick={() => setShowPanel(!showPanel)}
-                className="lg:hidden font-semibold text-white bg-[#6b7f5a] px-2.5 py-1 rounded text-[11px]"
-              >
-                {d.name}
-              </button>
+              <a href="/sources" className="text-[#6b7f5a] hover:underline font-semibold">Sources</a>
+              <button onClick={() => setShowPanel(!showPanel)} className="lg:hidden font-bold text-white bg-[#6b7f5a] px-2 py-1 rounded text-[10px]">{d.name}</button>
             </div>
           </div>
         </header>
 
-        {/* Hero Strip */}
-        <div className="bg-[#4a5e3f] px-4 sm:px-5 py-4">
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <h1 className="text-xl sm:text-2xl font-black text-white">{d.name}</h1>
-            <p className="text-[#b8c9a8] text-xs">
-              {new Intl.NumberFormat("en").format(d.population)} residents · {d.area} km² · Mayor: {d.mayor} ({d.mayorParty})
-            </p>
+        {/* Hero */}
+        <div className="bg-[#3d4f3d] px-4 sm:px-5 py-5">
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">{d.name}</h1>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-[#b8c9a8]">
+            <span><strong className="text-white text-sm">{new Intl.NumberFormat("en").format(d.population)}</strong> residents</span>
+            <span><strong className="text-white text-sm">{d.area}</strong> km²</span>
+            <span>Mayor: <strong className="text-white">{d.mayor}</strong></span>
           </div>
-          {/* Quick stats inline */}
-          <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-[11px] text-[#d4e0c8]">
-            {liveWeather.data && <span>{liveWeather.data.temperature}°C, {liveWeather.data.description}</span>}
-            {liveAir.data && <span>Air Quality: AQI {liveAir.data.aqi} · PM2.5 {liveAir.data.pm25} ug/m³</span>}
-            {liveTransit.data && <span>{liveTransit.data.length} transit alerts active</span>}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-[#93b37a]">
+            {liveWeather.data && <span><strong className="text-white">{liveWeather.data.temperature}°C</strong> {liveWeather.data.description}</span>}
+            {liveAir.data && <span>AQI <strong className="text-white">{liveAir.data.aqi}</strong> · PM2.5 <strong className="text-white">{liveAir.data.pm25}</strong></span>}
+            {liveTransit.data && <span><strong className="text-white">{liveTransit.data.length}</strong> transit alerts</span>}
           </div>
         </div>
 
-        {/* Data Grid */}
-        <main className="px-4 sm:px-5 py-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+        {/* Grid */}
+        <main className="px-3 sm:px-4 py-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
 
-            <Tile title="Public Contracts" desc="Government spending agreements filed in the public registry" status={liveContracts.status} source={liveContracts.source}>
+            <Tile title="Public Contracts" source={liveContracts.source}>
               {liveContracts.data && liveContracts.data.length > 0 ? (
                 <>
-                  <N>{liveContracts.data.length}</N>
-                  <L>contracts on record</L>
+                  <Big>{liveContracts.data.length}</Big>
+                  <Sub>contracts filed</Sub>
                   {liveContracts.data.slice(0, 2).map((c) => (
                     <Row key={c.id} left={c.subject} right={fmtCZK(c.value)} />
                   ))}
@@ -137,49 +128,49 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Health & Medical" desc="Clinics, pharmacies, and hospitals within this district" status={liveHealth.status} source={liveHealth.source}>
+            <Tile title="Healthcare" source={liveHealth.source}>
               {liveHealth.data ? (
                 <>
-                  <N>{liveHealth.data.total}</N>
-                  <L>healthcare facilities</L>
-                  <div className="flex gap-2 flex-wrap text-[10px] text-[#5a5040]">
-                    <span>{liveHealth.data.pharmacies} pharmacies</span>
-                    <span>{liveHealth.data.gps} GPs</span>
-                    <span>{liveHealth.data.specialists} specialists</span>
+                  <Big>{liveHealth.data.total}</Big>
+                  <Sub>medical facilities</Sub>
+                  <div className="flex gap-3 mt-1 text-[10px] text-[#5a5040]">
+                    <span><strong className="text-[#3d4f3d]">{liveHealth.data.pharmacies}</strong> pharmacies</span>
+                    {liveHealth.data.gps > 0 && <span><strong className="text-[#3d4f3d]">{liveHealth.data.gps}</strong> GPs</span>}
+                    {liveHealth.data.specialists > 0 && <span><strong className="text-[#3d4f3d]">{liveHealth.data.specialists}</strong> specialists</span>}
                   </div>
                 </>
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Transit Alerts" desc="Current disruptions and delays on metro, tram, and bus lines" status={liveTransit.status} source={liveTransit.source}>
+            <Tile title="Transit" source={liveTransit.source}>
               {liveTransit.data && liveTransit.data.length > 0 ? (
-                <div className="space-y-1">
-                  {liveTransit.data.slice(0, 3).map((item, i) => (
-                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="block text-[10px] text-[#5a5040] hover:text-[#3d4f3d] truncate">
-                      {item.title}
-                    </a>
+                <>
+                  <Big>{liveTransit.data.length}</Big>
+                  <Sub>active disruptions</Sub>
+                  {liveTransit.data.slice(0, 2).map((item, i) => (
+                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="block text-[10px] text-[#5a5040] hover:text-[#3d4f3d] truncate mt-0.5">{item.title}</a>
                   ))}
-                </div>
+                </>
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Waste & Recycling" desc="Sorted waste stations and container counts in the area" status={liveWaste.status} source={liveWaste.source}>
+            <Tile title="Waste & Recycling" source={liveWaste.source}>
               {liveWaste.data ? (
                 <>
-                  <div className="flex gap-3">
-                    <div><N>{liveWaste.data.stations}</N><L>stations</L></div>
-                    <div><N>{liveWaste.data.containers}</N><L>containers</L></div>
+                  <div className="flex gap-4 items-end">
+                    <div><Big>{liveWaste.data.stations}</Big><Sub>stations</Sub></div>
+                    <div><Big>{liveWaste.data.containers}</Big><Sub>containers</Sub></div>
                   </div>
-                  <div className="text-[10px] text-[#8a7e6b] mt-1">{liveWaste.data.monitoredContainers} with smart fill sensors</div>
+                  <div className="text-[10px] text-[#8a7e6b] mt-1"><strong className="text-[#3d4f3d]">{liveWaste.data.monitoredContainers}</strong> smart-monitored</div>
                 </>
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Parks & Gardens" desc="Public green spaces maintained by the district" status={liveParks.status} source={liveParks.source}>
+            <Tile title="Parks" source={liveParks.source}>
               {liveParks.data ? (
                 <>
-                  <N>{liveParks.data.total}</N>
-                  <L>registered green areas</L>
+                  <Big>{liveParks.data.total}</Big>
+                  <Sub>green spaces</Sub>
                   {liveParks.data.parks.slice(0, 3).map((p) => (
                     <div key={p.name} className="text-[10px] text-[#5a5040] truncate">{p.name}</div>
                   ))}
@@ -187,11 +178,11 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Sports Facilities" desc="Playgrounds, courts, and recreation areas available to residents" status={liveSports.status} source={liveSports.source}>
+            <Tile title="Sports" source={liveSports.source}>
               {liveSports.data ? (
                 <>
-                  <N>{liveSports.data.playgrounds}</N>
-                  <L>playgrounds & sports areas</L>
+                  <Big>{liveSports.data.playgrounds}</Big>
+                  <Sub>playgrounds & courts</Sub>
                   {liveSports.data.facilities.slice(0, 2).map((f) => (
                     <div key={f.name} className="text-[10px] text-[#5a5040] truncate">{f.name}</div>
                   ))}
@@ -199,11 +190,11 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Libraries" desc="Municipal and public library branches in this district" status={liveLibraries.status} source={liveLibraries.source}>
+            <Tile title="Libraries" source={liveLibraries.source}>
               {liveLibraries.data ? (
                 <>
-                  <N>{liveLibraries.data.total}</N>
-                  <L>public libraries</L>
+                  <Big>{liveLibraries.data.total}</Big>
+                  <Sub>public libraries</Sub>
                   {liveLibraries.data.libraries.slice(0, 3).map((lib) => (
                     <div key={lib.name} className="text-[10px] text-[#5a5040] truncate">{lib.name}</div>
                   ))}
@@ -211,192 +202,223 @@ export default function Page() {
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="Business Registry" desc="Official commercial registration info from ARES database" status={liveBusiness.status} source={liveBusiness.source}>
+            <Tile title="Business Registry" source={liveBusiness.source}>
               {liveBusiness.data ? (
                 <>
-                  <div className="text-[11px] font-semibold text-[#3d4f3d] mb-0.5">{liveBusiness.data.name}</div>
-                  <div className="text-[10px] text-[#8a7e6b]">ICO: {liveBusiness.data.ico}</div>
-                  <div className="text-[10px] text-[#5a5040] truncate mt-0.5">{liveBusiness.data.address}</div>
+                  <div className="text-xs font-bold text-[#3d4f3d]">{liveBusiness.data.name}</div>
+                  <div className="text-[10px] text-[#8a7e6b] mt-0.5">ICO {liveBusiness.data.ico}</div>
+                  <div className="text-[10px] text-[#5a5040] truncate">{liveBusiness.data.address}</div>
                 </>
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="City Hall Contact" desc="Address, phone, and website for your local municipal office" status={liveCityHall.status} source={liveCityHall.source}>
+            <Tile title="City Hall" source={liveCityHall.source}>
               {liveCityHall.data ? (
-                <div className="space-y-0.5 text-[10px]">
-                  {liveCityHall.data.address && <div className="text-[#5a5040]">{liveCityHall.data.address}</div>}
-                  {liveCityHall.data.phone && <div className="text-[#5a5040]">Tel: {liveCityHall.data.phone}</div>}
-                  {liveCityHall.data.email && <div className="text-[#5a5040]">{liveCityHall.data.email}</div>}
-                  {liveCityHall.data.web && <a href={`https://${liveCityHall.data.web}`} target="_blank" rel="noopener noreferrer" className="text-[#6b7f5a] font-medium">{liveCityHall.data.web}</a>}
+                <div className="space-y-0.5 text-[10px] text-[#5a5040]">
+                  {liveCityHall.data.address && <div>{liveCityHall.data.address}</div>}
+                  {liveCityHall.data.phone && <div>Tel: <strong>{liveCityHall.data.phone}</strong></div>}
+                  {liveCityHall.data.email && <div>{liveCityHall.data.email}</div>}
+                  {liveCityHall.data.web && <a href={`https://${liveCityHall.data.web}`} target="_blank" rel="noopener noreferrer" className="text-[#6b7f5a] font-semibold">{liveCityHall.data.web}</a>}
                 </div>
               ) : <Skeleton />}
             </Tile>
 
-            <Tile title="District Budget" desc="Annual revenue and spending from the State Treasury Monitor" status={liveBudget.status} source={liveBudget.source}>
-              {liveBudget.data ? (
-                <>
-                  {liveBudget.data.totalRevenue ? (
-                    <div className="space-y-0.5">
-                      <Row left="Revenue (income)" right={fmtCZK(liveBudget.data.totalRevenue * 1_000_000)} highlight />
-                      <Row left="Expenditure (spending)" right={fmtCZK((liveBudget.data.totalExpenditure || 0) * 1_000_000)} />
-                      {liveBudget.data.surplus != null && <Row left="Surplus (savings)" right={fmtCZK(liveBudget.data.surplus * 1_000_000)} highlight={liveBudget.data.surplus >= 0} />}
+            {/* Budget - fallback to static data */}
+            <Tile title="Budget" source={liveBudget.source}>
+              {(() => {
+                const rev = liveBudget.data?.totalRevenue || d.budget.totalRevenue;
+                const exp = liveBudget.data?.totalExpenditure || d.budget.totalExpenditure;
+                const surplus = liveBudget.data?.surplus ?? d.budget.surplus;
+                return (
+                  <>
+                    <Big>{fmtCZK(rev * 1_000_000)}</Big>
+                    <Sub>annual revenue</Sub>
+                    <Row left="Spending" right={fmtCZK(exp * 1_000_000)} />
+                    <Row left="Surplus" right={fmtCZK(surplus * 1_000_000)} highlight={surplus >= 0} />
+                  </>
+                );
+              })()}
+            </Tile>
+
+            {/* Crime - fallback to static */}
+            <Tile title="Crime" source={liveCrime.source}>
+              {(() => {
+                const total = liveCrime.data?.total || d.crime.total2023;
+                const change = liveCrime.data?.change ?? d.crime.change;
+                return (
+                  <>
+                    <Big>{total.toLocaleString()}</Big>
+                    <Sub>reported incidents</Sub>
+                    <div className={`text-[10px] font-bold mt-0.5 ${change < 0 ? "text-[#6b7f5a]" : "text-red-600"}`}>
+                      {change > 0 ? "+" : ""}{typeof change === "number" ? change.toFixed(1) : change}% year-over-year
                     </div>
-                  ) : <div className="text-[10px] text-[#8a7e6b]">{liveBudget.data.summary || "Budget data synced"}</div>}
-                </>
-              ) : <Skeleton />}
+                  </>
+                );
+              })()}
             </Tile>
 
-            <Tile title="Crime Statistics" desc="Reported criminal incidents from Czech Police crime map" status={liveCrime.status} source={liveCrime.source}>
-              {liveCrime.data ? (
-                <>
-                  {liveCrime.data.total ? (
-                    <>
-                      <N>{liveCrime.data.total.toLocaleString()}</N>
-                      <L>reported incidents (annual)</L>
-                      {liveCrime.data.change != null && (
-                        <div className={`text-[10px] font-semibold ${liveCrime.data.change < 0 ? "text-[#6b7f5a]" : "text-red-600"}`}>
-                          {liveCrime.data.change > 0 ? "+" : ""}{liveCrime.data.change}% vs previous year
-                        </div>
-                      )}
-                    </>
-                  ) : <div className="text-[10px] text-[#8a7e6b]">{liveCrime.data.summary?.slice(0, 120) || "Crime statistics synced"}</div>}
-                </>
-              ) : <Skeleton />}
-            </Tile>
-
-            <Tile title="Local Elections" desc="Results from the most recent municipal council election" status={liveElections.status} source={liveElections.source}>
-              {liveElections.data ? (
-                <>
-                  {liveElections.data.turnout ? (
-                    <>
-                      <div className="flex gap-3 mb-1">
-                        <div><N>{liveElections.data.turnout}%</N><L>voter turnout</L></div>
-                        <div><N>{liveElections.data.seats}</N><L>council seats</L></div>
-                      </div>
-                      {liveElections.data.parties?.slice(0, 2).map((p) => (
-                        <Row key={p.name} left={p.name} right={`${p.pct}%`} />
-                      ))}
-                    </>
-                  ) : <div className="text-[10px] text-[#8a7e6b]">{liveElections.data.summary?.slice(0, 120) || "Election results synced"}</div>}
-                </>
-              ) : <Skeleton />}
-            </Tile>
-
-            <Tile title="Housing Market" desc="Average rent and property sale prices in this area" status={liveHousing.status} source={liveHousing.source}>
-              {liveHousing.data ? (
-                <>
-                  {liveHousing.data.avgRentM2 ? (
-                    <div className="space-y-0.5">
-                      <Row left="Rent (per m² monthly)" right={`${liveHousing.data.avgRentM2} CZK`} />
-                      <Row left="Sale price (per m²)" right={`${liveHousing.data.avgSaleM2?.toLocaleString()} CZK`} />
-                      {liveHousing.data.vacancyRate != null && <Row left="Vacancy rate" right={`${liveHousing.data.vacancyRate}%`} />}
+            {/* Elections - fallback to static */}
+            <Tile title="Elections" source={liveElections.source}>
+              {(() => {
+                const turnout = liveElections.data?.turnout || d.elections.turnout;
+                const seats = liveElections.data?.seats || d.elections.seats;
+                const parties = liveElections.data?.parties || d.elections.coalitions.map(c => ({ name: c.name, votes: 0, seats: c.seats, pct: Math.round(c.seats / seats * 100) }));
+                return (
+                  <>
+                    <div className="flex gap-4 items-end">
+                      <div><Big>{turnout}%</Big><Sub>turnout</Sub></div>
+                      <div><Big>{seats}</Big><Sub>seats</Sub></div>
                     </div>
-                  ) : <div className="text-[10px] text-[#8a7e6b]">{liveHousing.data.summary?.slice(0, 120) || "Housing market data synced"}</div>}
-                </>
-              ) : <Skeleton />}
+                    {parties.slice(0, 3).map((p) => (
+                      <Row key={p.name} left={p.name} right={`${p.pct || p.seats} ${p.pct ? "%" : "seats"}`} />
+                    ))}
+                  </>
+                );
+              })()}
             </Tile>
 
-            <Tile title="Employment" desc="Unemployment rate and job market data from Labor Office" status={liveEmployment.status} source={liveEmployment.source}>
-              {liveEmployment.data ? (
-                <>
-                  {liveEmployment.data.unemploymentRate != null ? (
-                    <>
-                      <N>{liveEmployment.data.unemploymentRate}%</N>
-                      <L>unemployment rate</L>
-                      {liveEmployment.data.avgSalary && <div className="text-[10px] text-[#5a5040]">Avg salary: {liveEmployment.data.avgSalary.toLocaleString()} CZK/month</div>}
-                      {liveEmployment.data.jobseekers && <div className="text-[10px] text-[#8a7e6b]">{liveEmployment.data.jobseekers} registered jobseekers</div>}
-                    </>
-                  ) : <div className="text-[10px] text-[#8a7e6b]">{liveEmployment.data.summary?.slice(0, 120) || "Employment data synced"}</div>}
-                </>
-              ) : <Skeleton />}
+            {/* Housing - fallback to static */}
+            <Tile title="Housing" source={liveHousing.source}>
+              {(() => {
+                const rent = liveHousing.data?.avgRentM2 || d.housing.avgRentM2;
+                const sale = liveHousing.data?.avgSaleM2 || d.housing.avgSaleM2;
+                const vacancy = liveHousing.data?.vacancyRate ?? d.housing.vacancyRate;
+                return (
+                  <>
+                    <Big>{rent} CZK</Big>
+                    <Sub>rent per m²/month</Sub>
+                    <Row left="Sale price" right={`${sale.toLocaleString()} CZK/m²`} />
+                    <Row left="Vacancy" right={`${vacancy}%`} />
+                  </>
+                );
+              })()}
             </Tile>
 
-            <Tile title="Education" desc="Schools registered in MSMT national school registry" status={liveSchools.status} source={liveSchools.source}>
-              {liveSchools.data ? (
-                <>
-                  {liveSchools.data.primary != null ? (
-                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-[#5a5040]">
-                      <span><strong>{liveSchools.data.kindergarten}</strong> kindergartens</span>
-                      <span><strong>{liveSchools.data.primary}</strong> primary schools</span>
-                      <span><strong>{liveSchools.data.secondary}</strong> secondary schools</span>
-                      {liveSchools.data.universities ? <span><strong>{liveSchools.data.universities}</strong> universities</span> : null}
+            {/* Employment - fallback to static */}
+            <Tile title="Employment" source={liveEmployment.source}>
+              {(() => {
+                const rate = liveEmployment.data?.unemploymentRate ?? d.employment.unemploymentRate;
+                const salary = liveEmployment.data?.avgSalary || d.employment.avgSalaryCZK;
+                const seekers = liveEmployment.data?.jobseekers || d.employment.jobseekers;
+                return (
+                  <>
+                    <Big>{rate}%</Big>
+                    <Sub>unemployment</Sub>
+                    <Row left="Avg salary" right={`${salary.toLocaleString()} CZK`} />
+                    <Row left="Jobseekers" right={seekers.toLocaleString()} />
+                  </>
+                );
+              })()}
+            </Tile>
+
+            {/* Schools - fallback to static */}
+            <Tile title="Education" source={liveSchools.source}>
+              {(() => {
+                const kg = liveSchools.data?.kindergarten ?? d.schools.kindergarten;
+                const pr = liveSchools.data?.primary ?? d.schools.primary;
+                const sec = liveSchools.data?.secondary ?? d.schools.secondary;
+                const uni = liveSchools.data?.universities ?? d.schools.universities;
+                const total = kg + pr + sec + uni;
+                return (
+                  <>
+                    <Big>{total}</Big>
+                    <Sub>schools total</Sub>
+                    <div className="flex flex-wrap gap-x-3 text-[10px] text-[#5a5040] mt-0.5">
+                      <span><strong>{kg}</strong> kindergartens</span>
+                      <span><strong>{pr}</strong> primary</span>
+                      <span><strong>{sec}</strong> secondary</span>
+                      {uni > 0 && <span><strong>{uni}</strong> universities</span>}
                     </div>
-                  ) : <div className="text-[10px] text-[#8a7e6b]">{liveSchools.data.summary?.slice(0, 120) || "Education data synced"}</div>}
-                </>
-              ) : <Skeleton />}
+                  </>
+                );
+              })()}
             </Tile>
 
-            <Tile title="Public Tenders" desc="Open government procurement opportunities from the official gazette" status={liveTenders.status} source={liveTenders.source}>
+            <Tile title="Tenders" source={liveTenders.source}>
               {liveTenders.data && Array.isArray(liveTenders.data) && liveTenders.data.length > 0 ? (
-                <div className="space-y-1">
+                <>
+                  <Big>{liveTenders.data.length}</Big>
+                  <Sub>open tenders</Sub>
                   {liveTenders.data.slice(0, 2).map((t, i) => (
-                    <div key={i}>
-                      <div className="text-[10px] text-[#5a5040] truncate">{t.title || "Tender"}</div>
-                      {t.estimatedValue && <div className="text-[10px] text-[#6b7f5a] font-semibold">{fmtCZK(t.estimatedValue)}</div>}
-                    </div>
+                    <Row key={i} left={t.title || "Tender"} right={t.estimatedValue ? fmtCZK(t.estimatedValue) : ""} />
                   ))}
-                </div>
-              ) : <Skeleton />}
+                </>
+              ) : (
+                <>
+                  <Big>{d.tenders.length}</Big>
+                  <Sub>public tenders</Sub>
+                  {d.tenders.slice(0, 2).map((t) => (
+                    <Row key={t.id} left={t.title} right={fmtCZK(t.estimatedValue)} />
+                  ))}
+                </>
+              )}
             </Tile>
 
-            <Tile title="Energy Prices" desc="Current heating, electricity, and gas rates for this zone" status={liveEnergy.status} source={liveEnergy.source}>
+            <Tile title="Energy" source={liveEnergy.source}>
               {liveEnergy.data ? (
-                <div className="space-y-0.5">
-                  <Row left="District heating" right={`${liveEnergy.data.heatPriceGJ} CZK/GJ`} />
+                <>
+                  <Big>{liveEnergy.data.heatPriceGJ}</Big>
+                  <Sub>CZK/GJ heating</Sub>
                   <Row left="Electricity" right={`${liveEnergy.data.electricityPriceKWh} CZK/kWh`} />
-                  <Row left="Natural gas" right={`${liveEnergy.data.gasPrice} CZK/m³`} />
-                  <Row left="Renewable share" right={`${liveEnergy.data.renewableShare}%`} highlight />
-                </div>
-              ) : <Skeleton />}
+                  <Row left="Renewables" right={`${liveEnergy.data.renewableShare}%`} highlight />
+                </>
+              ) : (
+                <>
+                  <Big>{d.energy.heatPriceGJ}</Big>
+                  <Sub>CZK/GJ heating</Sub>
+                  <Row left="Avg heat bill" right={`${d.energy.avgAnnualHeatBill.toLocaleString()} CZK/yr`} />
+                  <Row left="Renewables" right={`${d.energy.renewableShare}%`} highlight />
+                </>
+              )}
             </Tile>
 
-            <Tile title="Water Quality" desc="Tap water safety testing from Prague Water utility (PVK)" status={liveWater.status} source={liveWater.source}>
+            <Tile title="Water Quality" source={liveWater.source}>
               {liveWater.data ? (
-                <div className="space-y-0.5">
-                  <Row left="Safety rating" right={liveWater.data.rating} highlight />
-                  <Row left="pH level" right={String(liveWater.data.ph)} />
+                <>
+                  <Big className="capitalize">{liveWater.data.rating}</Big>
+                  <Sub>safety rating</Sub>
+                  <Row left="pH" right={String(liveWater.data.ph)} />
                   <Row left="Nitrates" right={`${liveWater.data.nitrates} mg/l`} />
-                  <Row left="Hardness" right={liveWater.data.hardness} />
-                </div>
-              ) : <Skeleton />}
+                </>
+              ) : (
+                <>
+                  <Big className="capitalize">{d.water.rating}</Big>
+                  <Sub>safety rating</Sub>
+                  <Row left="pH" right={String(d.water.ph)} />
+                  <Row left="Nitrates" right={`${d.water.nitrates} mg/l`} />
+                </>
+              )}
             </Tile>
 
-            <Tile title="Demographics" desc="Population, area, and density from Czech Statistical Office" status="live" source="https://www.czso.cz">
-              <div className="space-y-0.5">
-                <Row left="Population" right={d.population.toLocaleString()} />
-                <Row left="Area" right={`${d.area} km²`} />
-                <Row left="Population density" right={`${Math.round(d.population / d.area).toLocaleString()}/km²`} />
-                <Row left="Mayor" right={d.mayor} />
-              </div>
+            <Tile title="Demographics" source="https://www.czso.cz">
+              <Big>{Math.round(d.population / d.area).toLocaleString()}</Big>
+              <Sub>people per km²</Sub>
+              <Row left="Population" right={d.population.toLocaleString()} />
+              <Row left="Area" right={`${d.area} km²`} />
             </Tile>
 
           </div>
         </main>
 
-        {/* Footer */}
-        <footer className="border-t border-[#e8e4dc] bg-[#fefcf9] px-4 sm:px-5 py-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-[#8a7e6b]">
-            <span className="font-bold text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></span>
-            <span>19 live data categories · 22 Prague districts · Click any card to see data source</span>
-            <a href="/sources" className="text-[#6b7f5a] hover:underline font-medium">All Sources</a>
-          </div>
+        <footer className="border-t border-[#e8e4dc] px-4 sm:px-5 py-4 text-center text-[10px] text-[#8a7e6b]">
+          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 19 categories · 22 districts · Click card for source
         </footer>
       </div>
 
-      {/* Right District Panel - Desktop */}
-      <aside className="hidden lg:flex flex-col w-44 border-l border-[#e8e4dc] bg-[#faf8f4] sticky top-0 h-screen overflow-y-auto">
-        <div className="px-3 py-2.5 border-b border-[#e8e4dc]">
-          <div className="text-[9px] font-bold text-[#8a7e6b] uppercase tracking-wider">Select District</div>
+      {/* Right Panel */}
+      <aside className="hidden lg:flex flex-col w-40 border-l border-[#e8e4dc] bg-[#faf8f4] sticky top-0 h-screen overflow-y-auto">
+        <div className="px-3 py-2 border-b border-[#e8e4dc]">
+          <div className="text-[9px] font-bold text-[#8a7e6b] uppercase tracking-wider">District</div>
         </div>
-        <div className="flex-1 overflow-y-auto py-0.5">
+        <div className="flex-1 overflow-y-auto">
           {DISTRICTS.map((dist) => (
             <button
               key={dist.id}
               onClick={() => setDistrictId(dist.id)}
-              className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+              className={`w-full text-left px-3 py-1.5 text-[11px] transition-colors ${
                 dist.id === districtId
-                  ? "bg-[#6b7f5a]/10 text-[#3d4f3d] font-bold border-r-2 border-[#6b7f5a]"
-                  : "text-[#5a5040] hover:bg-[#f0ebe3] hover:text-[#3d4f3d]"
+                  ? "bg-[#3d4f3d] text-white font-bold"
+                  : "text-[#5a5040] hover:bg-[#f0ebe3]"
               }`}
             >
               Praha {dist.id}
@@ -409,19 +431,17 @@ export default function Page() {
       {showPanel && (
         <div className="fixed inset-0 z-[60] lg:hidden" onClick={() => setShowPanel(false)}>
           <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute right-0 top-0 bottom-0 w-52 bg-[#faf8f4] shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="px-3 py-2.5 border-b border-[#e8e4dc] flex items-center justify-between">
-              <span className="text-[9px] font-bold text-[#8a7e6b] uppercase tracking-wider">Select District</span>
-              <button onClick={() => setShowPanel(false)} className="text-[#8a7e6b] hover:text-[#3d4f3d] text-base">×</button>
+          <div className="absolute right-0 top-0 bottom-0 w-48 bg-[#faf8f4] shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="px-3 py-2 border-b border-[#e8e4dc] flex items-center justify-between">
+              <span className="text-[9px] font-bold text-[#8a7e6b] uppercase">District</span>
+              <button onClick={() => setShowPanel(false)} className="text-[#8a7e6b]">×</button>
             </div>
             {DISTRICTS.map((dist) => (
               <button
                 key={dist.id}
                 onClick={() => { setDistrictId(dist.id); setShowPanel(false); }}
-                className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                  dist.id === districtId
-                    ? "bg-[#6b7f5a]/10 text-[#3d4f3d] font-bold"
-                    : "text-[#5a5040] hover:bg-[#f0ebe3]"
+                className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${
+                  dist.id === districtId ? "bg-[#3d4f3d] text-white font-bold" : "text-[#5a5040] hover:bg-[#f0ebe3]"
                 }`}
               >
                 Praha {dist.id}
@@ -434,51 +454,34 @@ export default function Page() {
   );
 }
 
-// ─── Small Components ────────────────────────────────────────────────────────
-
-function Tile({ title, desc, status, source, children }: {
-  title: string;
-  desc: string;
-  status: "live" | "loading" | "error" | string;
-  source?: string | null;
-  children: React.ReactNode;
-}) {
-  const [showSource, setShowSource] = useState(false);
+function Tile({ title, source, children }: { title: string; source?: string | null; children: React.ReactNode }) {
+  const [showSrc, setShowSrc] = useState(false);
   return (
-    <div
-      className="bg-white rounded-md border border-[#e8e4dc] p-3 hover:border-[#6b7f5a]/40 hover:shadow-sm transition-all cursor-pointer relative"
-      onClick={() => source && setShowSource(!showSource)}
-    >
-      <div className="flex items-start justify-between mb-1.5">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[11px] font-bold text-[#3d4f3d] leading-tight">{title}</h3>
-          <p className="text-[9px] text-[#8a7e6b] leading-snug mt-0.5">{desc}</p>
-        </div>
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1 ml-2 ${status === "live" ? "bg-[#6b7f5a]" : status === "loading" ? "bg-amber-400 animate-pulse" : "bg-[#d4cfc5]"}`} />
-      </div>
+    <div className="bg-white rounded border border-[#e8e4dc] p-2.5 hover:border-[#6b7f5a]/50 transition-colors cursor-pointer" onClick={() => source && setShowSrc(!showSrc)}>
+      <div className="text-[10px] font-bold text-[#6b7f5a] uppercase tracking-wide mb-1">{title}</div>
       {children}
-      {showSource && source && (
-        <div className="mt-1.5 text-[8px] text-[#6b7f5a] font-mono bg-[#f0ebe3] px-1.5 py-0.5 rounded inline-block">
-          Source: {source.replace("https://", "").replace("http://", "").split("/")[0]}
+      {showSrc && source && (
+        <div className="mt-1 text-[8px] text-[#6b7f5a] font-mono bg-[#f0ebe3] px-1 py-0.5 rounded inline-block">
+          {source.replace("https://", "").replace("http://", "").split("/")[0]}
         </div>
       )}
     </div>
   );
 }
 
-function N({ children }: { children: React.ReactNode }) {
-  return <div className="text-lg font-black text-[#3d4f3d] leading-none">{children}</div>;
+function Big({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={`text-2xl font-black text-[#3d4f3d] leading-tight ${className || ""}`}>{children}</div>;
 }
 
-function L({ children }: { children: React.ReactNode }) {
-  return <div className="text-[9px] text-[#8a7e6b] mb-1">{children}</div>;
+function Sub({ children }: { children: React.ReactNode }) {
+  return <div className="text-[9px] text-[#8a7e6b] mb-1.5">{children}</div>;
 }
 
 function Row({ left, right, highlight }: { left: string; right: string; highlight?: boolean }) {
   return (
-    <div className="flex justify-between text-[10px] py-px">
-      <span className="text-[#8a7e6b]">{left}</span>
-      <strong className={highlight ? "text-[#6b7f5a]" : "text-[#3d4f3d]"}>{right}</strong>
+    <div className="flex justify-between text-[10px] py-px gap-2">
+      <span className="text-[#8a7e6b] truncate">{left}</span>
+      <strong className={`shrink-0 ${highlight ? "text-[#6b7f5a]" : "text-[#3d4f3d]"}`}>{right}</strong>
     </div>
   );
 }
@@ -486,9 +489,8 @@ function Row({ left, right, highlight }: { left: string; right: string; highligh
 function Skeleton() {
   return (
     <div className="animate-pulse space-y-1.5">
-      <div className="h-5 bg-[#f0ebe3] rounded w-1/4" />
-      <div className="h-2.5 bg-[#f0ebe3] rounded w-2/3" />
-      <div className="h-2.5 bg-[#f0ebe3] rounded w-1/2" />
+      <div className="h-6 bg-[#f0ebe3] rounded w-1/4" />
+      <div className="h-2 bg-[#f0ebe3] rounded w-2/3" />
     </div>
   );
 }

@@ -71,11 +71,19 @@ export default function Page() {
   const liveNoise = useLiveData<{ dayAvgDb: number; nightAvgDb: number; mainSources: string[]; exceedancePercent: number }>(`/api/data/noise?district=${districtId}`);
   const liveEUFunds = useLiveData<{ totalProjects: number; totalFunding: number; projects: { name: string; fund: string; amount: number; status: string }[] }>(`/api/data/eufunds?district=${districtId}`);
   const livePermits = useLiveData<{ total2024: number; pending: number; approved: number; recent: { address: string; type: string; status: string; date: string }[] }>(`/api/data/permits?district=${districtId}`);
+  const liveParking = useLiveData<{ total: number; freeSpaces: number; takenSpaces: number; totalCapacity: number; lots: { name: string; free: number; total: number; address: string }[] }>(`/api/data/parking?district=${districtId}`);
+  const liveCycling = useLiveData<{ counters: number; todayTotal: number; locations: { name: string; count: number }[] }>(`/api/data/cycling?district=${districtId}`);
+  const liveExchange = useLiveData<{ date: string; eur: number; usd: number; gbp: number; rates: { code: string; country: string; amount: number; rate: number }[] }>("/api/data/exchange");
+  const liveForeigners = useLiveData<{ total: number; percentOfPopulation: number; topNationalities: { country: string; count: number }[]; euCitizens: number; nonEuCitizens: number }>(`/api/data/foreigners?district=${districtId}`);
+  const liveSocial = useLiveData<{ seniorHomes: number; shelters: number; counselingCenters: number; totalProviders: number; services: { name: string; type: string }[] }>(`/api/data/social?district=${districtId}`);
+  const liveChildcare = useLiveData<{ kindergartens: number; totalCapacity: number; waitlistRate: number; facilities: { name: string; capacity: number }[] }>(`/api/data/childcare?district=${districtId}`);
+  const liveCulture = useLiveData<{ theaters: number; galleries: number; cinemas: number; culturalCenters: number; venues: { name: string; type: string }[] }>(`/api/data/culture?district=${districtId}`);
+  const liveTourism = useLiveData<{ annualVisitors: number; hotels: number; airbnbs: number; topAttractions: { name: string; visitors: number }[] }>(`/api/data/tourism?district=${districtId}`);
 
-  const allFetchedAts = [liveWeather, liveAir, liveTransit, liveContracts, liveHealth, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits]
+  const allFetchedAts = [liveWeather, liveAir, liveTransit, liveContracts, liveHealth, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism]
     .map((s) => s.fetchedAt).filter(Boolean) as string[];
   const latestUpdate = allFetchedAts.length > 0 ? allFetchedAts.sort().reverse()[0] : null;
-  const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits].filter(s => s.status === "live").length;
+  const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism].filter(s => s.status === "live").length;
 
   return (
     <div className="min-h-screen bg-[#fefcf9] flex">
@@ -85,7 +93,7 @@ export default function Page() {
           <div className="px-4 sm:px-5 h-11 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <a href="/" className="text-sm font-extrabold text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></a>
-              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 22 categories</span>
+              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 30 categories</span>
             </div>
             <div className="flex items-center gap-3 text-[10px]">
               {latestUpdate && (
@@ -454,11 +462,153 @@ export default function Page() {
               )}
             </Tile>
 
+            <Tile title="Parking" source={liveParking.source || "https://api.golemio.cz/v2/parkings"}>
+              {liveParking.data ? (
+                <>
+                  <Big>{liveParking.data.freeSpaces}</Big>
+                  <Sub>free spaces nearby</Sub>
+                  <Row left="P+R lots" right={String(liveParking.data.total)} />
+                  <Row left="Total capacity" right={liveParking.data.totalCapacity.toLocaleString()} />
+                  <Row left="Occupancy" right={`${liveParking.data.totalCapacity > 0 ? Math.round((liveParking.data.takenSpaces / liveParking.data.totalCapacity) * 100) : 0}%`} />
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading parking data</Sub>
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Cycling" source={liveCycling.source || "https://api.golemio.cz/v2/bicyclecounters"}>
+              {liveCycling.data ? (
+                <>
+                  <Big>{liveCycling.data.counters}</Big>
+                  <Sub>bike counters nearby</Sub>
+                  {liveCycling.data.todayTotal > 0 && <Row left="Today" right={`${liveCycling.data.todayTotal.toLocaleString()} cyclists`} highlight />}
+                  {liveCycling.data.locations.slice(0, 2).map((l, i) => (
+                    <Row key={i} left={l.name.slice(0, 20)} right={l.count > 0 ? l.count.toLocaleString() : "—"} />
+                  ))}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading cycling data</Sub>
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Exchange Rates" source="https://www.cnb.cz">
+              {liveExchange.data ? (
+                <>
+                  <Big>{liveExchange.data.eur.toFixed(2)}</Big>
+                  <Sub>CZK per EUR</Sub>
+                  <Row left="USD" right={`${liveExchange.data.usd.toFixed(2)} CZK`} />
+                  <Row left="GBP" right={`${liveExchange.data.gbp.toFixed(2)} CZK`} />
+                  <Row left="Updated" right={liveExchange.data.date} />
+                </>
+              ) : (
+                <>
+                  <Big>25.10</Big>
+                  <Sub>CZK per EUR (est.)</Sub>
+                  <Row left="USD" right="22.50 CZK" />
+                  <Row left="GBP" right="29.20 CZK" />
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Foreigners" source="https://www.czso.cz">
+              {liveForeigners.data ? (
+                <>
+                  <Big>{liveForeigners.data.total.toLocaleString()}</Big>
+                  <Sub>{liveForeigners.data.percentOfPopulation}% of population</Sub>
+                  <Row left="EU citizens" right={liveForeigners.data.euCitizens.toLocaleString()} />
+                  <Row left="Non-EU" right={liveForeigners.data.nonEuCitizens.toLocaleString()} />
+                  {liveForeigners.data.topNationalities.slice(0, 3).map((n, i) => (
+                    <Row key={i} left={n.country} right={n.count.toLocaleString()} />
+                  ))}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading foreigner stats</Sub>
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Social Services" source="https://iregistr.mpsv.cz">
+              {liveSocial.data ? (
+                <>
+                  <Big>{liveSocial.data.totalProviders}</Big>
+                  <Sub>service providers</Sub>
+                  <Row left="Senior homes" right={String(liveSocial.data.seniorHomes)} />
+                  <Row left="Shelters" right={String(liveSocial.data.shelters)} />
+                  <Row left="Counseling" right={String(liveSocial.data.counselingCenters)} />
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading social data</Sub>
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Childcare" source="https://rejstriky.msmt.cz">
+              {liveChildcare.data ? (
+                <>
+                  <Big>{liveChildcare.data.kindergartens}</Big>
+                  <Sub>kindergartens</Sub>
+                  <Row left="Total capacity" right={`${liveChildcare.data.totalCapacity} children`} />
+                  <Row left="Waitlist rate" right={`${liveChildcare.data.waitlistRate}%`} />
+                  {liveChildcare.data.facilities[0] && <Row left="Largest" right={liveChildcare.data.facilities[0].name} />}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading childcare data</Sub>
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Culture & Arts" source="https://www.prague.eu">
+              {liveCulture.data ? (
+                <>
+                  <Big>{liveCulture.data.theaters + liveCulture.data.galleries + liveCulture.data.cinemas + liveCulture.data.culturalCenters}</Big>
+                  <Sub>cultural venues</Sub>
+                  <Row left="Theaters" right={String(liveCulture.data.theaters)} />
+                  <Row left="Galleries" right={String(liveCulture.data.galleries)} />
+                  <Row left="Cinemas" right={String(liveCulture.data.cinemas)} />
+                  {liveCulture.data.venues[0] && <Row left="Top venue" right={liveCulture.data.venues[0].name} />}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading culture data</Sub>
+                </>
+              )}
+            </Tile>
+
+            <Tile title="Tourism" source="https://www.czso.cz">
+              {liveTourism.data ? (
+                <>
+                  <Big>{(liveTourism.data.annualVisitors / 1_000_000).toFixed(1)}M</Big>
+                  <Sub>visitors per year</Sub>
+                  <Row left="Hotels" right={String(liveTourism.data.hotels)} />
+                  <Row left="Airbnbs" right={liveTourism.data.airbnbs.toLocaleString()} />
+                  {liveTourism.data.topAttractions[0] && <Row left="#1 sight" right={liveTourism.data.topAttractions[0].name} />}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>loading tourism data</Sub>
+                </>
+              )}
+            </Tile>
+
           </div>
         </main>
 
         <footer className="border-t border-[#e8e4dc] px-4 sm:px-5 py-4 text-center text-[10px] text-[#8a7e6b]">
-          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 22 categories · 22 districts · Click card for source
+          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 30 categories · 22 districts · Click card for source
         </footer>
       </div>
 

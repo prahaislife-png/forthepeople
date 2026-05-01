@@ -335,6 +335,31 @@ async function updateOneDistrict(id: number): Promise<UpdateResult[]> {
         };
       },
     },
+    {
+      section: "parking",
+      endpoint: "/parkings",
+      transform: (r) => {
+        let freeSpaces = 0, takenSpaces = 0, totalCapacity = 0;
+        const lots: Array<{ name: string; free: number; total: number; address: string }> = [];
+        for (const f of r.features) {
+          const free = (f.properties.num_of_free_places as number) || 0;
+          const taken = (f.properties.num_of_taken_places as number) || 0;
+          const total = (f.properties.total_num_of_places as number) || (free + taken);
+          freeSpaces += free; takenSpaces += taken; totalCapacity += total;
+          if (lots.length < 8) lots.push({ name: String(f.properties.name || "P+R"), free, total, address: String((f.properties.address as { address_formatted?: string })?.address_formatted || "") });
+        }
+        return { total: r.features.length, freeSpaces, takenSpaces, totalCapacity, lots };
+      },
+    },
+    {
+      section: "cycling",
+      endpoint: "/bicyclecounters",
+      transform: (r) => ({
+        counters: r.features.length,
+        todayTotal: 0,
+        locations: r.features.slice(0, 5).map((f) => ({ name: String(f.properties.name || "Counter"), count: 0 })),
+      }),
+    },
   ];
 
   // Sequential Golemio calls to avoid 429 rate limits

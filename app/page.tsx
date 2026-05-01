@@ -79,11 +79,14 @@ export default function Page() {
   const liveChildcare = useLiveData<{ kindergartens: number; totalCapacity: number; waitlistRate: number; facilities: { name: string; capacity: number }[] }>(`/api/data/childcare?district=${districtId}`);
   const liveCulture = useLiveData<{ theaters: number; galleries: number; cinemas: number; culturalCenters: number; venues: { name: string; type: string }[] }>(`/api/data/culture?district=${districtId}`);
   const liveTourism = useLiveData<{ annualVisitors: number; hotels: number; airbnbs: number; topAttractions: { name: string; visitors: number }[] }>(`/api/data/tourism?district=${districtId}`);
+  const liveCoworking = useLiveData<{ total: number; spaces: { name: string; address: string; priceFrom: number }[] }>(`/api/data/coworking?district=${districtId}`);
+  const liveHolidays = useLiveData<{ nextHoliday: { name: string; date: string; daysUntil: number }; upcoming: { name: string; date: string }[]; totalPerYear: number }>("/api/data/holidays");
+  const liveInternet = useLiveData<{ avgDownload: number; avgUpload: number; fiberCoverage: number; providers: { name: string; maxSpeed: number; monthlyPrice: number }[] }>(`/api/data/internet?district=${districtId}`);
 
-  const allFetchedAts = [liveWeather, liveAir, liveTransit, liveContracts, liveHealth, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism]
+  const allFetchedAts = [liveWeather, liveAir, liveTransit, liveContracts, liveHealth, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism, liveCoworking, liveHolidays, liveInternet]
     .map((s) => s.fetchedAt).filter(Boolean) as string[];
   const latestUpdate = allFetchedAts.length > 0 ? allFetchedAts.sort().reverse()[0] : null;
-  const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism].filter(s => s.status === "live").length;
+  const liveCount = [liveContracts, liveHealth, liveTransit, liveWaste, liveParks, liveSports, liveLibraries, liveBusiness, liveCityHall, liveBudget, liveCrime, liveElections, liveHousing, liveEmployment, liveSchools, liveTenders, liveEnergy, liveWater, liveNoise, liveEUFunds, livePermits, liveParking, liveCycling, liveExchange, liveForeigners, liveSocial, liveChildcare, liveCulture, liveTourism, liveCoworking, liveHolidays, liveInternet].filter(s => s.status === "live").length;
 
   return (
     <div className="min-h-screen bg-[#fefcf9] flex">
@@ -93,7 +96,7 @@ export default function Page() {
           <div className="px-4 sm:px-5 h-11 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <a href="/" className="text-sm font-extrabold text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></a>
-              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 30 categories</span>
+              <span className="text-[10px] text-[#8a7e6b] hidden sm:inline">Open civic data · 22 districts · 33 categories</span>
             </div>
             <div className="flex items-center gap-3 text-[10px]">
               {latestUpdate && (
@@ -136,7 +139,12 @@ export default function Page() {
                     <Row key={c.id} left={c.subject} right={fmtCZK(c.value)} />
                   ))}
                 </>
-              ) : <Skeleton />}
+              ) : liveContracts.status === "loading" ? <Skeleton /> : (
+                <>
+                  <Big>—</Big>
+                  <Sub>no recent contracts</Sub>
+                </>
+              )}
             </Tile>
 
             <Tile title="Healthcare" source={liveHealth.source}>
@@ -178,7 +186,7 @@ export default function Page() {
             </Tile>
 
             <Tile title="Parks" source={liveParks.source}>
-              {liveParks.data ? (
+              {liveParks.data && liveParks.data.total > 0 ? (
                 <>
                   <Big>{liveParks.data.total}</Big>
                   <Sub>green spaces</Sub>
@@ -186,7 +194,20 @@ export default function Page() {
                     <div key={p.name} className="text-[10px] text-[#5a5040] truncate">{p.name}</div>
                   ))}
                 </>
-              ) : <Skeleton />}
+              ) : liveParks.status === "loading" ? <Skeleton /> : d.greenSpace.parks.length > 0 ? (
+                <>
+                  <Big>{d.greenSpace.parks.length}</Big>
+                  <Sub>parks & gardens</Sub>
+                  {d.greenSpace.parks.slice(0, 3).map((p) => (
+                    <div key={p.name} className="text-[10px] text-[#5a5040] truncate">{p.name}</div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>no park data</Sub>
+                </>
+              )}
             </Tile>
 
             <Tile title="Sports" source={liveSports.source}>
@@ -354,13 +375,18 @@ export default function Page() {
                     <Row key={i} left={t.title || "Tender"} right={t.estimatedValue ? fmtCZK(t.estimatedValue) : ""} />
                   ))}
                 </>
-              ) : (
+              ) : liveTenders.status === "loading" ? <Skeleton /> : d.tenders.length > 0 ? (
                 <>
                   <Big>{d.tenders.length}</Big>
                   <Sub>public tenders</Sub>
                   {d.tenders.slice(0, 2).map((t) => (
                     <Row key={t.id} left={t.title} right={fmtCZK(t.estimatedValue)} />
                   ))}
+                </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>no open tenders</Sub>
                 </>
               )}
             </Tile>
@@ -427,43 +453,53 @@ export default function Page() {
             </Tile>
 
             <Tile title="EU Funds" source={liveEUFunds.source || "https://dotaceeu.cz"}>
-              {liveEUFunds.data ? (
+              {liveEUFunds.data && liveEUFunds.data.totalProjects > 0 ? (
                 <>
                   <Big>{liveEUFunds.data.totalProjects}</Big>
                   <Sub>EU-funded projects</Sub>
                   <Row left="Total funding" right={`${liveEUFunds.data.totalFunding.toLocaleString()} M CZK`} />
                   {liveEUFunds.data.projects[0] && <Row left="Latest" right={liveEUFunds.data.projects[0].name} />}
                 </>
-              ) : (
+              ) : liveEUFunds.status === "loading" ? <Skeleton /> : d.euFunds.length > 0 ? (
                 <>
                   <Big>{d.euFunds.length}</Big>
                   <Sub>EU-funded projects</Sub>
                   <Row left="Total funding" right={`${d.euFunds.reduce((s, p) => s + p.amount, 0).toFixed(1)} M CZK`} />
                   {d.euFunds[0] && <Row left="Latest" right={d.euFunds[0].project} />}
                 </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>no EU fund data</Sub>
+                </>
               )}
             </Tile>
 
             <Tile title="Building Permits" source={livePermits.source || "https://iprpraha.cz"}>
-              {livePermits.data ? (
+              {livePermits.data && livePermits.data.total2024 > 0 ? (
                 <>
                   <Big>{livePermits.data.total2024}</Big>
                   <Sub>permits this year</Sub>
                   <Row left="Pending" right={String(livePermits.data.pending)} />
                   <Row left="Approved" right={String(livePermits.data.approved)} highlight />
                 </>
-              ) : (
+              ) : livePermits.status === "loading" ? <Skeleton /> : d.permits.length > 0 ? (
                 <>
                   <Big>{d.permits.length}</Big>
                   <Sub>recent permits</Sub>
                   <Row left="Pending" right={String(d.permits.filter(p => p.status === "pending").length)} />
                   <Row left="Approved" right={String(d.permits.filter(p => p.status === "approved").length)} highlight />
                 </>
+              ) : (
+                <>
+                  <Big>—</Big>
+                  <Sub>no permit data</Sub>
+                </>
               )}
             </Tile>
 
             <Tile title="Parking" source={liveParking.source || "https://api.golemio.cz/v2/parkings"}>
-              {liveParking.data ? (
+              {liveParking.data && liveParking.data.total > 0 ? (
                 <>
                   <Big>{liveParking.data.freeSpaces}</Big>
                   <Sub>free spaces nearby</Sub>
@@ -471,16 +507,18 @@ export default function Page() {
                   <Row left="Total capacity" right={liveParking.data.totalCapacity.toLocaleString()} />
                   <Row left="Occupancy" right={`${liveParking.data.totalCapacity > 0 ? Math.round((liveParking.data.takenSpaces / liveParking.data.totalCapacity) * 100) : 0}%`} />
                 </>
-              ) : (
+              ) : liveParking.status === "loading" ? <Skeleton /> : (
                 <>
-                  <Big>—</Big>
-                  <Sub>loading parking data</Sub>
+                  <Big>{d.parking.zone.split("–")[0].trim()}</Big>
+                  <Sub>parking zone</Sub>
+                  <Row left="Resident permit" right={`${d.parking.residentRate} CZK/yr`} />
+                  <Row left="Visitor rate" right={`${d.parking.visitorRate} CZK/hr`} />
                 </>
               )}
             </Tile>
 
             <Tile title="Cycling" source={liveCycling.source || "https://api.golemio.cz/v2/bicyclecounters"}>
-              {liveCycling.data ? (
+              {liveCycling.data && liveCycling.data.counters > 0 ? (
                 <>
                   <Big>{liveCycling.data.counters}</Big>
                   <Sub>bike counters nearby</Sub>
@@ -489,10 +527,10 @@ export default function Page() {
                     <Row key={i} left={l.name.slice(0, 20)} right={l.count > 0 ? l.count.toLocaleString() : "—"} />
                   ))}
                 </>
-              ) : (
+              ) : liveCycling.status === "loading" ? <Skeleton /> : (
                 <>
                   <Big>—</Big>
-                  <Sub>loading cycling data</Sub>
+                  <Sub>no counter data available</Sub>
                 </>
               )}
             </Tile>
@@ -527,12 +565,7 @@ export default function Page() {
                     <Row key={i} left={n.country} right={n.count.toLocaleString()} />
                   ))}
                 </>
-              ) : (
-                <>
-                  <Big>—</Big>
-                  <Sub>loading foreigner stats</Sub>
-                </>
-              )}
+              ) : <Skeleton />}
             </Tile>
 
             <Tile title="Social Services" source="https://iregistr.mpsv.cz">
@@ -544,12 +577,7 @@ export default function Page() {
                   <Row left="Shelters" right={String(liveSocial.data.shelters)} />
                   <Row left="Counseling" right={String(liveSocial.data.counselingCenters)} />
                 </>
-              ) : (
-                <>
-                  <Big>—</Big>
-                  <Sub>loading social data</Sub>
-                </>
-              )}
+              ) : <Skeleton />}
             </Tile>
 
             <Tile title="Childcare" source="https://rejstriky.msmt.cz">
@@ -561,12 +589,7 @@ export default function Page() {
                   <Row left="Waitlist rate" right={`${liveChildcare.data.waitlistRate}%`} />
                   {liveChildcare.data.facilities[0] && <Row left="Largest" right={liveChildcare.data.facilities[0].name} />}
                 </>
-              ) : (
-                <>
-                  <Big>—</Big>
-                  <Sub>loading childcare data</Sub>
-                </>
-              )}
+              ) : <Skeleton />}
             </Tile>
 
             <Tile title="Culture & Arts" source="https://www.prague.eu">
@@ -579,12 +602,7 @@ export default function Page() {
                   <Row left="Cinemas" right={String(liveCulture.data.cinemas)} />
                   {liveCulture.data.venues[0] && <Row left="Top venue" right={liveCulture.data.venues[0].name} />}
                 </>
-              ) : (
-                <>
-                  <Big>—</Big>
-                  <Sub>loading culture data</Sub>
-                </>
-              )}
+              ) : <Skeleton />}
             </Tile>
 
             <Tile title="Tourism" source="https://www.czso.cz">
@@ -596,19 +614,50 @@ export default function Page() {
                   <Row left="Airbnbs" right={liveTourism.data.airbnbs.toLocaleString()} />
                   {liveTourism.data.topAttractions[0] && <Row left="#1 sight" right={liveTourism.data.topAttractions[0].name} />}
                 </>
-              ) : (
+              ) : <Skeleton />}
+            </Tile>
+
+            <Tile title="Coworking" source="https://www.coworker.com">
+              {liveCoworking.data ? (
                 <>
-                  <Big>—</Big>
-                  <Sub>loading tourism data</Sub>
+                  <Big>{liveCoworking.data.total}</Big>
+                  <Sub>coworking spaces</Sub>
+                  {liveCoworking.data.spaces.slice(0, 2).map((s, i) => (
+                    <Row key={i} left={s.name} right={`from ${s.priceFrom} CZK`} />
+                  ))}
                 </>
-              )}
+              ) : <Skeleton />}
+            </Tile>
+
+            <Tile title="Public Holidays" source="https://www.mpsv.cz">
+              {liveHolidays.data ? (
+                <>
+                  <Big>{liveHolidays.data.nextHoliday.daysUntil === 0 ? "Today!" : `${liveHolidays.data.nextHoliday.daysUntil}d`}</Big>
+                  <Sub>until {liveHolidays.data.nextHoliday.name}</Sub>
+                  <Row left="Date" right={liveHolidays.data.nextHoliday.date.slice(5)} />
+                  <Row left="Holidays/year" right={String(liveHolidays.data.totalPerYear)} />
+                  {liveHolidays.data.upcoming[1] && <Row left="After that" right={liveHolidays.data.upcoming[1].name} />}
+                </>
+              ) : <Skeleton />}
+            </Tile>
+
+            <Tile title="Internet & ISP" source="https://www.ctu.cz">
+              {liveInternet.data ? (
+                <>
+                  <Big>{liveInternet.data.avgDownload} Mbps</Big>
+                  <Sub>average download speed</Sub>
+                  <Row left="Upload" right={`${liveInternet.data.avgUpload} Mbps`} />
+                  <Row left="Fiber coverage" right={`${liveInternet.data.fiberCoverage}%`} highlight />
+                  {liveInternet.data.providers[0] && <Row left={liveInternet.data.providers[0].name} right={`${liveInternet.data.providers[0].monthlyPrice} CZK/mo`} />}
+                </>
+              ) : <Skeleton />}
             </Tile>
 
           </div>
         </main>
 
         <footer className="border-t border-[#e8e4dc] px-4 sm:px-5 py-4 text-center text-[10px] text-[#8a7e6b]">
-          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 30 categories · 22 districts · Click card for source
+          <strong className="text-[#3d4f3d]">ForThePeople<span className="text-[#6b7f5a]">.cz</span></strong> · 33 categories · 22 districts · Click card for source
         </footer>
       </div>
 

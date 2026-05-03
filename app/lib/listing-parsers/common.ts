@@ -78,23 +78,50 @@ export function extractDistrictId(text: string): number {
 
   // Known neighborhood → district mapping
   const neighborhoods: Record<string, number> = {
+    // Praha 1
+    "staré město": 1, "nové město": 1, "josefov": 1, "malá strana": 1, "hradčany": 1,
+    // Praha 2
+    "vinohrady": 2, "vyšehrad": 2,
+    // Praha 3
+    "žižkov": 3,
+    // Praha 4
+    "podolí": 4, "braník": 4, "krč": 4, "lhotka": 4, "michle": 4, "kunratice": 4, "nusle": 4, "hodkovičky": 4,
+    // Praha 5
+    "smíchov": 5, "barrandov": 5, "hlubočepy": 5, "radlice": 5, "jinonice": 5, "košíře": 5, "motol": 5, "slivenec": 5,
+    // Praha 6
+    "dejvice": 6, "břevnov": 6, "střešovice": 6, "vokovice": 6, "veleslavín": 6, "liboc": 6, "ruzyně": 6, "nebušice": 6, "suchdol": 6, "sedlec": 6, "lysolaje": 6,
+    // Praha 7
     "holešovice": 7, "letná": 7, "bubeneč": 7, "troja": 7,
-    "vinohrady": 2, "nové město": 1, "staré město": 1,
-    "žižkov": 3, "karlín": 8, "libeň": 8,
-    "smíchov": 5, "nusle": 4, "podolí": 4,
-    "dejvice": 6, "břevnov": 6, "střešovice": 6,
-    "vršovice": 10, "strašnice": 10, "záběhlice": 10,
-    "chodov": 11, "háje": 11, "jižní město": 11,
-    "modřany": 12, "libuš": 12, "kamýk": 12,
-    "stodůlky": 13, "lužiny": 13, "řeporyje": 13,
-    "černý most": 14, "hloubětín": 14, "kyje": 14,
-    "prosek": 9, "letňany": 9, "vysočany": 9,
+    // Praha 8
+    "karlín": 8, "libeň": 8, "kobylisy": 8, "bohnice": 8, "ďáblice": 8, "čimice": 8, "palmovka": 8, "střížkov": 8,
+    // Praha 9
+    "prosek": 9, "vysočany": 9, "čakovice": 9, "vinoř": 9, "satalice": 9,
+    // Praha 10
+    "vršovice": 10, "strašnice": 10, "záběhlice": 10, "malešice": 10, "skalka": 10,
+    // Praha 11
+    "jižní město": 11, "háje": 11, "chodov": 11, "opatov": 11, "křeslice": 11, "šeberov": 11,
+    // Praha 12
+    "modřany": 12, "libuš": 12, "kamýk": 12, "komořany": 12, "cholupice": 12, "točná": 12,
+    // Praha 13
+    "stodůlky": 13, "lužiny": 13, "řeporyje": 13, "nové butovice": 13, "velká ohrada": 13,
+    // Praha 14
+    "černý most": 14, "hloubětín": 14, "kyje": 14, "hostavice": 14, "dolní počernice": 14,
+    // Praha 15
+    "hostivař": 15, "dolní měcholupy": 15, "horní měcholupy": 15, "petrovice": 15, "dubeč": 15,
+    // Praha 16
+    "radotín": 16, "zbraslav": 16, "lipence": 16, "velká chuchle": 16, "lochkov": 16,
+    // Praha 17
     "řepy": 17, "zličín": 17,
-    "hostivař": 15, "dolní měcholupy": 15,
-    "radotín": 16, "zbraslav": 16,
-    "barrandov": 5, "hlubočepy": 5,
-    "kunratice": 4, "krč": 4, "braník": 4,
-    "kobylisy": 8, "bohnice": 8, "ďáblice": 8,
+    // Praha 18
+    "letňany": 18,
+    // Praha 19
+    "kbely": 19,
+    // Praha 20
+    "horní počernice": 20,
+    // Praha 21
+    "újezd nad lesy": 21, "klánovice": 21, "běchovice": 21, "koloděje": 21,
+    // Praha 22
+    "uhříněves": 22, "benice": 22, "pitkovice": 22, "nedvězí": 22, "královice": 22,
   };
 
   const lower = text.toLowerCase();

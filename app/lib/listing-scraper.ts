@@ -77,11 +77,12 @@ export async function scrapeListing(url: string): Promise<ListingDetails> {
 
   // Layer 4: Use URL-parsed data + district averages as fallback
   // This always works and produces a usable (though less accurate) result
-  if (urlParsed.districtId > 0) {
-    return enrichWithDistrictDefaults(urlParsed);
+  // Default to Praha 5 if no district detected
+  if (!urlParsed.districtId) {
+    urlParsed.districtId = 5;
+    urlParsed.district = "Praha 5";
   }
-
-  throw new Error("Could not extract listing data from any source");
+  return enrichWithDistrictDefaults(urlParsed);
 }
 
 /**

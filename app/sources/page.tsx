@@ -270,8 +270,8 @@ export default function SourcesPage() {
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <a href="/" className="flex items-center gap-2">
-              <span className="text-lg font-bold tracking-tight text-gray-900">ForThePeople</span>
-              <span className="text-lg font-bold text-red-700">.cz</span>
+              <span className="text-lg font-bold tracking-tight text-gray-900">Move</span>
+              <span className="text-lg font-bold text-blue-600">Prague</span>
             </a>
             <span className="text-xs text-gray-400 font-mono">/ sources</span>
           </div>
@@ -289,7 +289,7 @@ export default function SourcesPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Data Sources & Status</h1>
           <p className="text-sm text-gray-600">
-            Each section on ForThePeople.cz pulls data from Czech government open-data portals.
+            Each section on Move Prague pulls data from Czech government open-data portals.
             This page shows the current integration status of each source.
           </p>
           <div className="flex flex-wrap gap-3 mt-4">

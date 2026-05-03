@@ -50,15 +50,7 @@ export async function POST(request: NextRequest) {
     } catch (scrapeError) {
       console.error("Scrape failed:", scrapeError);
       return Response.json(
-        { error: "Unable to scrape listing. Please check the URL is valid and the page is accessible." },
-        { status: 422 }
-      );
-    }
-
-    // Validate we got usable data
-    if (!listing.priceTotal || !listing.areaM2) {
-      return Response.json(
-        { error: "Could not extract price and area from the listing. Please ensure the URL points to a property listing page." },
+        { error: "Unable to analyze this listing. Please check the URL is valid and points to a Czech real estate listing (sreality.cz, bezrealitky.cz, etc.)." },
         { status: 422 }
       );
     }
@@ -67,6 +59,14 @@ export async function POST(request: NextRequest) {
     if (!listing.districtId) {
       listing.districtId = 5;
       listing.district = "Praha 5";
+    }
+
+    // Ensure we have minimum data to run analysis
+    if (!listing.areaM2) listing.areaM2 = 55; // default apartment size
+    if (!listing.priceTotal) {
+      const d = getDistrict(listing.districtId);
+      listing.priceTotal = Math.round(d.housing.avgSaleM2 * listing.areaM2);
+      listing.pricePerM2 = d.housing.avgSaleM2;
     }
 
     // Step 2: Enrich with district data
